@@ -28,26 +28,30 @@ impl From<&str> for Direction {
 }
 
 struct Position {
+    /// Horizontal position
     x: u128,
     /// Depth
     y: u128,
+    /// Aim
+    z: u128,
 }
 
 impl Position {
     fn new() -> Self {
-        Self { x: 0, y: 0 }
+        Self { x: 0, y: 0, z: 0 }
     }
 
     fn up(&mut self, v: u128) {
-        self.y -= v;
+        self.z -= v;
     }
 
     fn down(&mut self, v: u128) {
-        self.y += v;
+        self.z += v;
     }
 
     fn forward(&mut self, v: u128) {
         self.x += v;
+        self.y += self.z * v;
     }
 }
 
@@ -75,7 +79,7 @@ mod tests {
     fn test_1() {
         assert_eq!(
             dive(&[Forward(5), Down(5), Forward(8), Up(3), Down(8), Forward(2)]),
-            150
+            900
         );
     }
 }
