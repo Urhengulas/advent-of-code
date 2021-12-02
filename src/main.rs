@@ -1,54 +1,68 @@
 mod input;
 
-use std::collections::HashSet;
-
 use input::INPUT;
 
 fn main() {
-    let directions = INPUT.chars().map(|c| c.into()).collect::<Vec<_>>();
-    dbg!(perfectly_spherical_houses_in_a_vacuum(&directions));
+    let directions = INPUT.iter().map(|&c| c.into()).collect::<Vec<_>>();
+    dbg!(dive(&directions));
 }
 
 enum Direction {
-    North,
-    East,
-    South,
-    West,
+    Up(u128),
+    Down(u128),
+    Forward(u128),
 }
 
-impl From<char> for Direction {
-    fn from(value: char) -> Self {
-        match value {
-            '^' => Self::North,
-            '>' => Self::East,
-            'v' => Self::South,
-            '<' => Self::West,
-            _ => unreachable!(),
+impl From<&str> for Direction {
+    fn from(v: &str) -> Self {
+        if let Some(s) = v.strip_prefix("up ") {
+            Self::Up(s.parse().unwrap())
+        } else if let Some(s) = v.strip_prefix("down ") {
+            Self::Down(s.parse().unwrap())
+        } else if let Some(s) = v.strip_prefix("forward ") {
+            Self::Forward(s.parse().unwrap())
+        } else {
+            unreachable!()
         }
     }
 }
 
-/// Count the number of times a depth measurement increases
-fn perfectly_spherical_houses_in_a_vacuum(directions: &[Direction]) -> usize {
-    let mut visited = HashSet::new();
+struct Position {
+    x: u128,
+    /// Depth
+    y: u128,
+}
 
-    let mut x = 0;
-    let mut y = 0;
+impl Position {
+    fn new() -> Self {
+        Self { x: 0, y: 0 }
+    }
 
-    visited.insert([x, y]);
+    fn up(&mut self, v: u128) {
+        self.y -= v;
+    }
+
+    fn down(&mut self, v: u128) {
+        self.y += v;
+    }
+
+    fn forward(&mut self, v: u128) {
+        self.x += v;
+    }
+}
+
+fn dive(directions: &[Direction]) -> u128 {
+    let mut pos = Position::new();
 
     for dir in directions {
         match dir {
-            Direction::North => y += 1,
-            Direction::East => x += 1,
-            Direction::South => y -= 1,
-            Direction::West => x -= 1,
-        }
-
-        visited.insert([x, y]);
+            Direction::Up(v) => pos.up(*v),
+            Direction::Down(v) => pos.down(*v),
+            Direction::Forward(v) => pos.forward(*v),
+        };
     }
 
-    visited.len()
+    pos.x * pos.y
 }
 
 #[cfg(test)]
@@ -59,24 +73,9 @@ mod tests {
 
     #[test]
     fn test_1() {
-        assert_eq!(perfectly_spherical_houses_in_a_vacuum(&[East]), 2);
-    }
-
-    #[test]
-    fn test_2() {
         assert_eq!(
-            perfectly_spherical_houses_in_a_vacuum(&[North, East, South, West]),
-            4
-        );
-    }
-
-    #[test]
-    fn test_3() {
-        assert_eq!(
-            perfectly_spherical_houses_in_a_vacuum(&[
-                North, South, North, South, North, South, North, South
-            ]),
-            2
+            dive(&[Forward(5), Down(5), Forward(8), Up(3), Down(8), Forward(2)]),
+            150
         );
     }
 }
