@@ -3,83 +3,61 @@ mod input;
 use input::INPUT;
 
 fn main() {
-    let directions = INPUT.iter().map(|&c| c.into()).collect::<Vec<_>>();
-    dbg!(dive(&directions));
+    let input = INPUT.lines().collect::<Vec<_>>();
+    dbg!(binary_diagnostic(&input));
 }
 
-enum Direction {
-    Up(u128),
-    Down(u128),
-    Forward(u128),
-}
+fn binary_diagnostic(input: &[&str]) -> u128 {
+    // the most common bits
+    let mut gamma = String::new();
+    // the least common bits
+    let mut epsilon = String::new();
 
-impl From<&str> for Direction {
-    fn from(v: &str) -> Self {
-        if let Some(s) = v.strip_prefix("up ") {
-            Self::Up(s.parse().unwrap())
-        } else if let Some(s) = v.strip_prefix("down ") {
-            Self::Down(s.parse().unwrap())
-        } else if let Some(s) = v.strip_prefix("forward ") {
-            Self::Forward(s.parse().unwrap())
+    let input_len = input.len();
+    let line_len = input[0].len();
+
+    for i in 0..line_len {
+        // count how often `1` occurred
+        let mut sum = 0;
+        for line in input {
+            let digit = line.chars().nth(i).unwrap().to_digit(10).unwrap();
+            sum += digit;
+        }
+
+        // which bit occurred more often
+        let half = (input_len as u32) / 2;
+        if sum > half {
+            // `1` occurred more often than `0`
+            gamma.push('1');
+            epsilon.push('0');
+        } else if sum < half {
+            // `0` occurred more often than `1`
+            gamma.push('0');
+            epsilon.push('1');
         } else {
+            // `0` and `1` occurred equally, which isn't handled by the task description
             unreachable!()
         }
     }
-}
 
-struct Position {
-    /// Horizontal position
-    x: u128,
-    /// Depth
-    y: u128,
-    /// Aim
-    z: u128,
-}
+    let gamma = u128::from_str_radix(&gamma, 2).unwrap();
+    let epsilon = u128::from_str_radix(&epsilon, 2).unwrap();
 
-impl Position {
-    fn new() -> Self {
-        Self { x: 0, y: 0, z: 0 }
-    }
-
-    fn up(&mut self, v: u128) {
-        self.z -= v;
-    }
-
-    fn down(&mut self, v: u128) {
-        self.z += v;
-    }
-
-    fn forward(&mut self, v: u128) {
-        self.x += v;
-        self.y += self.z * v;
-    }
-}
-
-fn dive(directions: &[Direction]) -> u128 {
-    let mut pos = Position::new();
-
-    for dir in directions {
-        match dir {
-            Direction::Up(v) => pos.up(*v),
-            Direction::Down(v) => pos.down(*v),
-            Direction::Forward(v) => pos.forward(*v),
-        };
-    }
-
-    pos.x * pos.y
+    gamma * epsilon
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
 
-    use Direction::*;
-
     #[test]
     fn test_1() {
         assert_eq!(
-            dive(&[Forward(5), Down(5), Forward(8), Up(3), Down(8), Forward(2)]),
-            900
+            binary_diagnostic(&[
+                "00100", "11110", "10110", "10111", "10101", "01111", "00111", "11100", "10000",
+                "11001", "00010", "01010",
+            ]),
+            198
         );
     }
 }
