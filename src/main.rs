@@ -1,8 +1,5 @@
-mod input;
-
-use input::INPUT;
-
 fn main() {
+    const INPUT: &str = include_str!("input.txt");
     let input = INPUT.lines().collect::<Vec<_>>();
     dbg!(binary_diagnostic(&input));
 }
