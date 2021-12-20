@@ -42,28 +42,26 @@ impl Grid {
     }
 
     fn draw_line(&mut self, start: &Coordinate, end: &Coordinate) {
-        // only consider straight lines, for now
-        if start.x != end.x && start.y != end.y {
-            return;
-        }
-
         let calc_dimension = |s: usize, e| {
-            let diff = (s as isize - e as isize).abs() as usize;
+            let diff = e as isize - s as isize;
             let step = match diff {
                 0 => 0,
+                _ if diff < 0 => -1,
                 _ => 1,
             };
-            let min = (s).min(e);
-            (diff, step, min)
+            (diff.abs(), step)
         };
 
-        let (x_diff, x_step, x_min) = calc_dimension(start.x, end.x);
-        let (y_diff, y_step, y_min) = calc_dimension(start.y, end.y);
+        let (x_diff, x_step) = calc_dimension(start.x, end.x);
+        let (y_diff, y_step) = calc_dimension(start.y, end.y);
         let diff_max = (x_diff).max(y_diff);
 
         // increment all points in line
         for i in 0..=diff_max {
-            let (x, y) = (x_min + i * x_step, y_min + i * y_step);
+            let (x, y) = (
+                (start.x as isize + i * x_step) as usize,
+                (start.y as isize + i * y_step) as usize,
+            );
             self.0[x][y] += 1;
         }
     }
@@ -103,7 +101,7 @@ mod tests {
                 0,0 -> 8,8
                 5,5 -> 8,2"
             )),
-            5
+            12
         );
     }
 }
