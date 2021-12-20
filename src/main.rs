@@ -1,46 +1,87 @@
 fn main() {
-    const INPUT: &str = include_str!("input.txt");
-    let input = INPUT.lines().collect::<Vec<_>>();
-    dbg!(binary_diagnostic(&input));
+    let input = parse(include_str!("input.txt"));
+    dbg!(hydrothermal_venture(&input));
 }
 
-fn binary_diagnostic(input: &[&str]) -> u128 {
-    // the most common bits
-    let mut gamma = String::new();
-    // the least common bits
-    let mut epsilon = String::new();
+fn parse(input: &str) -> Vec<(Coordinate, Coordinate)> {
+    input
+        .lines()
+        .map(|line| {
+            let (start, end) = line.split_once(" -> ").unwrap();
 
-    let input_len = input.len();
-    let line_len = input[0].len();
+            let parse_coordinate = |s: &str| {
+                let (y, x) = s.trim_matches(' ').split_once(',').expect(s);
+                let (y, x) = (y.parse().expect(y), x.parse().expect(x));
+                Coordinate { x, y }
+            };
 
-    for i in 0..line_len {
-        // count how often `1` occurred
-        let mut sum = 0;
-        for line in input {
-            let digit = line.chars().nth(i).unwrap().to_digit(10).unwrap();
-            sum += digit;
+            (parse_coordinate(start), parse_coordinate(end))
+        })
+        .collect()
+}
+
+fn hydrothermal_venture(input: &[(Coordinate, Coordinate)]) -> usize {
+    let mut grid = Grid::new();
+
+    for (start, end) in input {
+        grid.draw_line(start, end);
+    }
+
+    grid.count_overlaps()
+}
+
+#[derive(Debug)]
+// Note: Needs to be `Box<[[usize; DIM]>`, because `[[usize; DIM]; DIM]` overflows the stack
+struct Grid(Box<[[usize; DIM]]>);
+
+const DIM: usize = 1000;
+
+impl Grid {
+    fn new() -> Self {
+        Self(vec![[0; DIM]; DIM].into_boxed_slice())
+    }
+
+    fn draw_line(&mut self, start: &Coordinate, end: &Coordinate) {
+        // only consider straight lines, for now
+        if start.x != end.x && start.y != end.y {
+            return;
         }
 
-        // which bit occurred more often
-        let half = (input_len as u32) / 2;
-        if sum > half {
-            // `1` occurred more often than `0`
-            gamma.push('1');
-            epsilon.push('0');
-        } else if sum < half {
-            // `0` occurred more often than `1`
-            gamma.push('0');
-            epsilon.push('1');
-        } else {
-            // `0` and `1` occurred equally, which isn't handled by the task description
-            unreachable!()
+        let calc_dimension = |s: usize, e| {
+            let diff = (s as isize - e as isize).abs() as usize;
+            let step = match diff {
+                0 => 0,
+                _ => 1,
+            };
+            let min = (s).min(e);
+            (diff, step, min)
+        };
+
+        let (x_diff, x_step, x_min) = calc_dimension(start.x, end.x);
+        let (y_diff, y_step, y_min) = calc_dimension(start.y, end.y);
+        let diff_max = (x_diff).max(y_diff);
+
+        // increment all points in line
+        for i in 0..=diff_max {
+            let (x, y) = (x_min + i * x_step, y_min + i * y_step);
+            self.0[x][y] += 1;
         }
     }
 
-    let gamma = u128::from_str_radix(&gamma, 2).unwrap();
-    let epsilon = u128::from_str_radix(&epsilon, 2).unwrap();
+    fn count_overlaps(self) -> usize {
+        const OVERLAP_TRESHHOLD: usize = 2;
+        self.0
+            .into_iter()
+            .flatten()
+            .filter(|c| **c >= OVERLAP_TRESHHOLD)
+            .count()
+    }
+}
 
-    gamma * epsilon
+#[derive(Debug)]
+struct Coordinate {
+    x: usize,
+    y: usize,
 }
 
 #[cfg(test)]
@@ -50,11 +91,19 @@ mod tests {
     #[test]
     fn test_1() {
         assert_eq!(
-            binary_diagnostic(&[
-                "00100", "11110", "10110", "10111", "10101", "01111", "00111", "11100", "10000",
-                "11001", "00010", "01010",
-            ]),
-            198
+            hydrothermal_venture(&parse(
+                "0,9 -> 5,9
+                8,0 -> 0,8
+                9,4 -> 3,4
+                2,2 -> 2,1
+                7,0 -> 7,4
+                6,4 -> 2,0
+                0,9 -> 2,9
+                3,4 -> 1,4
+                0,0 -> 8,8
+                5,5 -> 8,2"
+            )),
+            5
         );
     }
 }
