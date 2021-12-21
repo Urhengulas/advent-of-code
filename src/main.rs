@@ -42,14 +42,22 @@ fn parse(mut input: &str) -> Tree {
 
 /// Returns the magnitude
 fn snailfish(input: Vec<Tree>) -> u32 {
-    let tree = input
-        .into_iter()
-        .reduce(|accum, item| {
-            let tree = addition(accum, item);
-            reduce(tree)
-        })
-        .unwrap();
-    magnitude(&tree)
+    // let tree = input
+    //     .into_iter()
+    //     .reduce(|accum, item| {
+    //         let tree = addition(accum, item);
+    //         reduce(tree)
+    //     })
+    //     .unwrap();
+    // magnitude(&tree)
+    let mut max_mag = 0;
+    for num1 in &input {
+        for num2 in &input {
+            let mag = magnitude(&reduce(addition(num1.clone(), num2.clone())));
+            max_mag = max_mag.max(mag);
+        }
+    }
+    max_mag
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -343,7 +351,7 @@ mod tests {
                 parse("[[2,[[7,7],7]],[[5,8],[[9,3],[0,2]]]]"),
                 parse("[[[[5,2],5],[8,[3,7]]],[[5,[7,5]],[4,4]]]"),
             ]),
-            4140
+            3993
         )
     }
 
