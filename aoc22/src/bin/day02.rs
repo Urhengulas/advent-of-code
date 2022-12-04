@@ -8,26 +8,27 @@ fn main() {
 }
 
 fn part_1(input: &str) -> u32 {
-    input
-        .chars()
-        .filter(|a| ['A', 'B', 'C', 'X', 'Y', 'Z'].contains(a))
-        .map(Into::into)
-        .array_chunks::<2>()
-        .map(|[other_choice, my_choice]| calculate_score(&my_choice, &other_choice))
+    chunk_chars(input)
+        .map(|[a, b]| (a.into(), b.into()))
+        .map(|(other_choice, my_choice)| calculate_score(&my_choice, &other_choice))
         .sum()
 }
 
 fn part_2(input: &str) -> u32 {
-    input
-        .chars()
-        .filter(|a| ['A', 'B', 'C', 'X', 'Y', 'Z'].contains(a))
-        .array_chunks::<2>()
+    chunk_chars(input)
         .map(|[a, b]| (a.into(), b.into()))
         .map(|(other_choice, outcome)| {
             let my_choice = choose_choice(&other_choice, &outcome);
             calculate_score(&my_choice, &other_choice)
         })
         .sum()
+}
+
+fn chunk_chars(input: &str) -> impl Iterator<Item = [char; 2]> + '_ {
+    input
+        .chars()
+        .filter(|a| ['A', 'B', 'C', 'X', 'Y', 'Z'].contains(a))
+        .array_chunks::<2>()
 }
 
 #[derive(Debug, PartialEq)]
