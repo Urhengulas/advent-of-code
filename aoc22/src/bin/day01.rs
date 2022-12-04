@@ -17,7 +17,7 @@ fn part_2(input: &str) -> u32 {
     let mut a = parse(input);
     a.sort_unstable();
     let b = &a[a.len() - 3..a.len()];
-    b.into_iter().sum()
+    b.iter().sum()
 }
 
 fn parse(input: &str) -> Vec<u32> {
@@ -25,7 +25,7 @@ fn parse(input: &str) -> Vec<u32> {
     let mut c = vec![0];
     let mut c_idx = 0;
     for b in a {
-        if b == "" {
+        if b.is_empty() {
             c_idx += 1;
             c.push(0);
             continue;

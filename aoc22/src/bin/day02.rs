@@ -10,7 +10,7 @@ fn main() {
 fn part_1(input: &str) -> u32 {
     input
         .chars()
-        .filter(|a| ['A', 'B', 'C', 'X', 'Y', 'Z'].contains(&a))
+        .filter(|a| ['A', 'B', 'C', 'X', 'Y', 'Z'].contains(a))
         .map(Into::into)
         .array_chunks::<2>()
         .map(|[other_choice, my_choice]| calculate_score(&my_choice, &other_choice))
@@ -20,7 +20,7 @@ fn part_1(input: &str) -> u32 {
 fn part_2(input: &str) -> u32 {
     input
         .chars()
-        .filter(|a| ['A', 'B', 'C', 'X', 'Y', 'Z'].contains(&a))
+        .filter(|a| ['A', 'B', 'C', 'X', 'Y', 'Z'].contains(a))
         .array_chunks::<2>()
         .map(|[a, b]| (a.into(), b.into()))
         .map(|(other_choice, outcome)| {
@@ -71,7 +71,7 @@ fn calculate_score(my_choice: &Choice, other_choice: &Choice) -> u32 {
         Choice::Paper => 2,
         Choice::Scissors => 3,
     };
-    let outcome_score = match is_winner(&my_choice, &other_choice) {
+    let outcome_score = match is_winner(my_choice, other_choice) {
         Outcome::Loose => 0,
         Outcome::Draw => 3,
         Outcome::Win => 6,

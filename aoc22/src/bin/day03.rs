@@ -16,8 +16,8 @@ fn part_1(input: &str) -> u32 {
         .inspect(|a| assert!(a.len() % 2 == 0))
         .map(|a| a.split_at(a.len() / 2))
         .map(|(a, b)| [to_char_set(a), to_char_set(b)])
-        .map(|a| intersection(a))
-        .map(|a| to_priority(a))
+        .map(intersection)
+        .map(to_priority)
         .sum()
 }
 
@@ -27,8 +27,8 @@ fn part_2(input: &str) -> u32 {
         .map(str::trim)
         .array_chunks::<3>()
         .map(|[a, b, c]| [to_char_set(a), to_char_set(b), to_char_set(c)])
-        .map(|a| intersection(a))
-        .map(|a| to_priority(a))
+        .map(intersection)
+        .map(to_priority)
         .sum()
 }
 
