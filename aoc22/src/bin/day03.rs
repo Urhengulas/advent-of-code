@@ -51,7 +51,7 @@ fn intersection<const N: usize>(a: [HashSet<char>; N]) -> char {
     // get intersection of all the sets
     let mut c = b.next().unwrap();
     for d in b {
-        c = c.intersection(&d).cloned().collect::<HashSet<_>>();
+        c = c.intersection(&d).cloned().collect();
     }
 
     // get the single element intersection
