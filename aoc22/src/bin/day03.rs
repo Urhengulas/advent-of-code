@@ -16,9 +16,8 @@ fn part_1(input: &str) -> u32 {
         .inspect(|a| assert!(a.len() % 2 == 0))
         .map(|a| a.split_at(a.len() / 2))
         .map(|(a, b)| [to_char_set(a), to_char_set(b)])
-        .map(|[a, b]| HashSet::intersection(&a, &b).cloned().collect::<Vec<_>>())
-        .inspect(|a| assert!(a.len() == 1))
-        .map(|a| to_priority(a[0]))
+        .map(|a| intersection(a))
+        .map(|a| to_priority(a))
         .sum()
 }
 
@@ -45,11 +44,20 @@ fn to_priority(a: char) -> u32 {
     }
 }
 
-fn intersection(a: [HashSet<char>; 3]) -> char {
-    let b = a[0].intersection(&a[1]).cloned().collect::<HashSet<_>>();
-    let c = a[2].intersection(&b).cloned().collect::<Vec<_>>();
-    assert!(c.len() == 1);
-    c[0]
+fn intersection<const N: usize>(a: [HashSet<char>; N]) -> char {
+    assert!(N > 0);
+    let mut b = a.into_iter();
+
+    // get intersection of all the sets
+    let mut c = b.next().unwrap();
+    for d in b {
+        c = c.intersection(&d).cloned().collect::<HashSet<_>>();
+    }
+
+    // get the single element intersection
+    let e = c.into_iter().collect::<Vec<_>>();
+    assert!(e.len() == 1);
+    e[0]
 }
 
 #[cfg(test)]
