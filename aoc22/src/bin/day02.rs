@@ -1,3 +1,5 @@
+#![feature(iter_array_chunks)]
+
 use std::cmp::Ordering;
 
 fn main() {
@@ -8,11 +10,10 @@ fn main() {
 
 fn part_1(input: &str) -> u32 {
     input
-        .lines()
-        .map(str::trim)
-        .inspect(|a| assert_eq!(a.len(), 3))
-        .map(str::chars)
-        .map(|mut a| [a.next().unwrap().into(), a.last().unwrap().into()])
+        .chars()
+        .filter(|a| ['A', 'B', 'C', 'X', 'Y', 'Z'].contains(&a))
+        .map(Into::into)
+        .array_chunks::<2>()
         .map(|[other_choice, my_choice]| {
             let shape_score = match my_choice {
                 Choice::Rock => 1,
