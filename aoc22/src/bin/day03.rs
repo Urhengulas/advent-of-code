@@ -8,26 +8,24 @@ fn main() {
 }
 
 fn part_1(input: &str) -> u32 {
-    let a = input.lines().map(str::trim).collect::<Vec<_>>();
-    let mut sum = 0;
-    for b in a {
-        assert!(b.len() % 2 == 0, "{b}");
-        let (c, d) = b.split_at(b.len() / 2);
-        let (e, f) = (
-            c.chars().collect::<HashSet<_>>(),
-            d.chars().collect::<HashSet<_>>(),
-        );
-        let g = HashSet::intersection(&e, &f).collect::<Vec<_>>();
-        assert!(g.len() == 1);
-        let h = *g[0];
-        let i = to_priority(h);
-        sum += i;
-    }
-    sum
+    input
+        .lines()
+        .map(str::trim)
+        .inspect(|a| assert!(a.len() % 2 == 0))
+        .map(|a| a.split_at(a.len() / 2))
+        .map(|(a, b)| [to_char_set(a), to_char_set(b)])
+        .map(move |[a, b]| HashSet::intersection(&a, &b).cloned().collect::<Vec<_>>())
+        .inspect(|a| assert!(a.len() == 1))
+        .map(|a| to_priority(a[0]))
+        .sum()
 }
 
 fn part_2(input: &str) -> () {
     ()
+}
+
+fn to_char_set(a: &str) -> HashSet<char> {
+    a.chars().collect()
 }
 
 fn to_priority(a: char) -> u32 {
