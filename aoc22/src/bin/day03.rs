@@ -1,3 +1,5 @@
+#![feature(iter_array_chunks)]
+
 use std::collections::HashSet;
 
 fn main() {
@@ -14,14 +16,21 @@ fn part_1(input: &str) -> u32 {
         .inspect(|a| assert!(a.len() % 2 == 0))
         .map(|a| a.split_at(a.len() / 2))
         .map(|(a, b)| [to_char_set(a), to_char_set(b)])
-        .map(move |[a, b]| HashSet::intersection(&a, &b).cloned().collect::<Vec<_>>())
+        .map(|[a, b]| HashSet::intersection(&a, &b).cloned().collect::<Vec<_>>())
         .inspect(|a| assert!(a.len() == 1))
         .map(|a| to_priority(a[0]))
         .sum()
 }
 
-fn part_2(input: &str) -> () {
-    ()
+fn part_2(input: &str) -> u32 {
+    input
+        .lines()
+        .map(str::trim)
+        .array_chunks::<3>()
+        .map(|[a, b, c]| [to_char_set(a), to_char_set(b), to_char_set(c)])
+        .map(|a| intersection(a))
+        .map(|a| to_priority(a))
+        .sum()
 }
 
 fn to_char_set(a: &str) -> HashSet<char> {
@@ -34,6 +43,13 @@ fn to_priority(a: char) -> u32 {
         true => b - 96,
         false => b - 38,
     }
+}
+
+fn intersection(a: [HashSet<char>; 3]) -> char {
+    let b = a[0].intersection(&a[1]).cloned().collect::<HashSet<_>>();
+    let c = a[2].intersection(&b).cloned().collect::<Vec<_>>();
+    assert!(c.len() == 1);
+    c[0]
 }
 
 #[cfg(test)]
@@ -55,5 +71,22 @@ mod tests {
 
         // Assert
         assert_eq!(a, 157);
+    }
+
+    #[test]
+    fn test_2() {
+        // Arrange
+        let input = "vJrwpWtwJgWrhcsFMMfFFhFp
+        jqHRNqRjqzjGDLGLrsFMfFZSrLrFZsSL
+        PmmdzqPrVvPwwTWBwg
+        wMqvLMZHhHMvwLHjbvcjnnSBnvTQFn
+        ttgJtRGJQctTZtZT
+        CrZsJsPPZsGzwwsLwLmpwMDw";
+
+        // Act
+        let a = part_2(input);
+
+        // Assert
+        assert_eq!(a, 70);
     }
 }
