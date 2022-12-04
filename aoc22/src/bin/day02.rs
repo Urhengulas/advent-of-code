@@ -1,7 +1,5 @@
 #![feature(iter_array_chunks)]
 
-use std::cmp::Ordering;
-
 fn main() {
     let input = include_str!("day02.txt");
     let a = part_1(input);
@@ -20,10 +18,10 @@ fn part_1(input: &str) -> u32 {
                 Choice::Paper => 2,
                 Choice::Scissors => 3,
             };
-            let outcome_score = match is_winner(&[my_choice, other_choice]) {
-                Ordering::Less => 0,
-                Ordering::Equal => 3,
-                Ordering::Greater => 6,
+            let outcome_score = match is_winner(&my_choice, &other_choice) {
+                Outcome::Loose => 0,
+                Outcome::Draw => 3,
+                Outcome::Win => 6,
             };
             shape_score + outcome_score
         })
@@ -37,6 +35,12 @@ enum Choice {
     Scissors,
 }
 
+enum Outcome {
+    Win,
+    Loose,
+    Draw,
+}
+
 impl From<char> for Choice {
     fn from(value: char) -> Self {
         match value {
@@ -48,33 +52,27 @@ impl From<char> for Choice {
     }
 }
 
-impl PartialOrd for Choice {
-    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        use Choice::*;
-        use Ordering::*;
-        Some(match (self, other) {
-            (Rock, Rock) => Equal,
-            (Paper, Paper) => Equal,
-            (Scissors, Scissors) => Equal,
+fn is_winner(my_choice: &Choice, other_choice: &Choice) -> Outcome {
+    use {Choice::*, Outcome::*};
 
-            (Rock, Scissors) => Greater,
-            (Paper, Rock) => Greater,
-            (Scissors, Paper) => Greater,
+    match (my_choice, other_choice) {
+        (Rock, Rock) => Draw,
+        (Paper, Paper) => Draw,
+        (Scissors, Scissors) => Draw,
 
-            (Paper, Scissors) => Less,
-            (Scissors, Rock) => Less,
-            (Rock, Paper) => Less,
-        })
+        (Rock, Scissors) => Win,
+        (Paper, Rock) => Win,
+        (Scissors, Paper) => Win,
+
+        (Paper, Scissors) => Loose,
+        (Scissors, Rock) => Loose,
+        (Rock, Paper) => Loose,
     }
-}
-
-fn is_winner(a: &[Choice; 2]) -> Ordering {
-    PartialOrd::partial_cmp(&a[0], &a[1]).unwrap()
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::part_1;
+    use super::*;
 
     #[test]
     fn test_1() {
