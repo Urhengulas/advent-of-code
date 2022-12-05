@@ -26,20 +26,20 @@ fn part_2(input: &str) -> usize {
 fn parse(line: &str) -> [RangeInclusive<u32>; 2] {
     let (a, b) = line.split_once(',').unwrap();
 
-    let (c, d) = a.split_once('-').unwrap();
-    let (e, f) = (c.parse().unwrap(), d.parse().unwrap());
+    let c = |d: &str| {
+        let (e, f) = d.split_once('-').unwrap();
+        [e.parse().unwrap(), f.parse().unwrap()]
+    };
 
-    let (g, h) = b.split_once('-').unwrap();
-    let (i, j) = (g.parse().unwrap(), h.parse().unwrap());
+    let [g, h] = c(a);
+    let [i, j] = c(b);
 
-    [e..=f, i..=j]
+    [g..=h, i..=j]
 }
 
 fn fully_contains([a, b]: &[RangeInclusive<u32>; 2]) -> bool {
-    let c = a.start();
-    let d = a.end();
-    let e = b.start();
-    let f = b.end();
+    let [c, d] = [a.start(), a.end()];
+    let [e, f] = [b.start(), b.end()];
 
     // a contains b
     let g = c <= e && d >= f;
@@ -51,13 +51,10 @@ fn fully_contains([a, b]: &[RangeInclusive<u32>; 2]) -> bool {
 }
 
 fn overlap_at_all([a, b]: &[RangeInclusive<u32>; 2]) -> bool {
-    let c = a.start();
-    let d = a.end();
-    let e = b.start();
-    let f = b.end();
+    let [c, d] = [a.start(), a.end()];
+    let [e, f] = [b.start(), b.end()];
 
     let g = d >= e && c <= f;
-
     let h = f >= c && e <= d;
 
     g || h
