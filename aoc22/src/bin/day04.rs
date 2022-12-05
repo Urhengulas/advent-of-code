@@ -14,8 +14,13 @@ fn part_1(input: &str) -> usize {
         .count()
 }
 
-fn part_2(_input: &str) -> u32 {
-    todo!()
+fn part_2(input: &str) -> usize {
+    input
+        .lines()
+        .map(str::trim)
+        .map(parse)
+        .filter(overlap_at_all)
+        .count()
 }
 
 fn parse(line: &str) -> [RangeInclusive<u32>; 2] {
@@ -41,6 +46,19 @@ fn fully_contains([a, b]: &[RangeInclusive<u32>; 2]) -> bool {
 
     // b contains a
     let h = e <= c && f >= d;
+
+    g || h
+}
+
+fn overlap_at_all([a, b]: &[RangeInclusive<u32>; 2]) -> bool {
+    let c = a.start();
+    let d = a.end();
+    let e = b.start();
+    let f = b.end();
+
+    let g = d >= e && c <= f;
+
+    let h = f >= c && e <= d;
 
     g || h
 }
@@ -75,6 +93,6 @@ mod tests {
         let a = part_2(INPUT);
 
         // Assert
-        assert_eq!(a, 0);
+        assert_eq!(a, 4);
     }
 }
