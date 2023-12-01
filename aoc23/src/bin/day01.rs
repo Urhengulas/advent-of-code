@@ -21,7 +21,7 @@ fn part_1(input: &str) -> u32 {
             let b = numbers[numbers.len() - 1];
             [a, b].into_iter().collect::<String>()
         })
-        .map(|num_str| u32::from_str_radix(&num_str, 10).unwrap())
+        .map(|num_str| num_str.parse::<u32>().unwrap())
         .sum()
 }
 
@@ -33,10 +33,9 @@ fn part_2(input: &str) -> u32 {
         .map(|numbers| {
             let a = numbers[0].clone();
             let b = numbers[numbers.len() - 1].clone();
-            let c = [a, b].into_iter().collect::<String>();
-            c
+            [a, b].into_iter().collect::<String>()
         })
-        .map(|num_str| u32::from_str_radix(&num_str, 10).unwrap())
+        .map(|num_str| num_str.parse::<u32>().unwrap())
         .sum()
 }
 
@@ -44,7 +43,7 @@ fn parse_line(mut s: &str) -> Vec<String> {
     let mut numbers = Vec::new();
 
     'outer: loop {
-        if s.starts_with(|c: char| c.is_digit(10)) {
+        if s.starts_with(|c: char| c.is_ascii_digit()) {
             let digit_str = &s[0..1];
             s = &s[1..];
             numbers.push(digit_str.to_string());
