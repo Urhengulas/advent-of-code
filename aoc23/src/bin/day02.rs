@@ -6,9 +6,9 @@ fn main() {
     // Game 3: 8 green, 6 blue, 20 red; 5 blue, 4 red, 13 green; 5 green, 1 red
     // Game 4: 1 green, 3 red, 6 blue; 3 green, 6 red; 3 green, 15 blue, 14 red
     // Game 5: 6 red, 1 blue, 3 green; 2 blue, 1 red, 2 green";
-    // dbg!(part_1(input));
+    // dbg!(part_2(input));
     dbg!(part_1(INPUT));
-    // dbg!(part_2(INPUT));
+    dbg!(part_2(INPUT));
 }
 
 fn part_1(input: &str) -> usize {
@@ -56,23 +56,11 @@ struct Color {
     b: u32,
 }
 
-// fn part_2(input: &str) -> u32 {
-//     todo!()
-// }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn part_1_test_1() {
-        // Arrange
-        let input = "";
-
-        // Act
-        let result = part_1(input);
-
-        // Assert
-        assert_eq!(result, 0);
-    }
+fn part_2(input: &str) -> u32 {
+    input
+        .lines()
+        .map(str::trim)
+        .map(parse_line)
+        .map(|color| dbg!(color.r * color.g * color.b))
+        .sum()
 }
