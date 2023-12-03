@@ -1,4 +1,4 @@
-use std::ops::Range;
+use std::ops::RangeInclusive;
 
 const INPUT: &str = include_str!("day03.txt");
 
@@ -36,42 +36,47 @@ fn part_2(input: &str) -> u32 {
 
     let mut sum = 0;
 
-    for line_idx in 0..lines.len() {
+    'line_loop: for line_idx in 0..lines.len() {
         let line = lines[line_idx];
 
-        let gear_idx = match line.find('*') {
-            Some(idx) => idx,
-            None => continue,
-        };
+        let mut prev_gear_idx = 0;
+        '_gear_loop: loop {
+            // dbg!(line_idx, prev_gear_idx);
+            let gear_idx = match line[prev_gear_idx..].find('*') {
+                Some(idx) => prev_gear_idx + idx,
+                None => continue 'line_loop,
+            };
+            prev_gear_idx = gear_idx + 1;
+            // dbg!(line_idx, gear_idx);
 
-        // check previous, current and next line, except its first or last line
-        let check_lines = get_check_lines(line_idx, lines.len());
+            // check previous, current and next line, except its first or last line
+            let check_lines = get_check_lines(line_idx, lines.len());
 
-        // check one char before and after, except it very beginning or end
-        let range = match gear_idx {
-            0 => 0..=1,
-            num if num == lines.len() - 1 => num - 1..=num,
-            num => num - 1..=num + 1,
-        };
+            // check one char before and after, except it very beginning or end
+            let range = match gear_idx {
+                0 => 0..=1,
+                num if num == lines.len() - 1 => num - 1..=num,
+                num => num - 1..=num + 1,
+            };
 
-        // dbg!(&check_lines, &range);
-
-        let mut adjacent_pnums = Vec::new();
-        for pnum in &pnums {
-            // do we consider the line?
-            if check_lines.contains(&pnum.line_idx) {
-                // dbg!(&pnum);
-
-                // does the number touch the gear?
-                if range.contains(&pnum.span.start) || range.contains(&pnum.span.end) {
-                    adjacent_pnums.push(pnum.num)
+            let mut adjacent_pnums = Vec::new();
+            'pnum_loop: for pnum in &pnums {
+                // do we consider the line?
+                if check_lines.contains(&pnum.line_idx) {
+                    // does the number touch the gear?
+                    for i in pnum.span.clone() {
+                        if range.contains(&i) {
+                            adjacent_pnums.push(pnum.num);
+                            continue 'pnum_loop;
+                        }
+                    }
                 }
             }
-        }
 
-        // dbg!(&adjacent_pnums);
-        if adjacent_pnums.len() == 2 {
-            sum += adjacent_pnums[0] * adjacent_pnums[1]
+            // dbg!(&adjacent_pnums);
+            if adjacent_pnums.len() == 2 {
+                sum += adjacent_pnums[0] * adjacent_pnums[1]
+            }
         }
     }
 
@@ -116,7 +121,7 @@ fn find_part_numbers(lines: &[&str]) -> Vec<PartNumber> {
                         pnums.push(PartNumber {
                             num,
                             line_idx,
-                            span: number_start..number_end,
+                            span: number_start..=number_end - 1,
                         });
                         continue 'inner;
                     }
@@ -141,5 +146,5 @@ fn get_check_lines(line_idx: usize, lines_len: usize) -> Vec<usize> {
 struct PartNumber {
     num: u32,
     line_idx: usize,
-    span: Range<usize>,
+    span: RangeInclusive<usize>,
 }
