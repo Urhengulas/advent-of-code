@@ -36,8 +36,10 @@ fn part_2(input: &str) -> u32 {
 
     let mut sum = 0;
 
-    for (line_idx, line) in lines.iter().enumerate() {
-        let idx = match line.find('*') {
+    for line_idx in 0..lines.len() {
+        let line = lines[line_idx];
+
+        let gear_idx = match line.find('*') {
             Some(idx) => idx,
             None => continue,
         };
@@ -46,15 +48,22 @@ fn part_2(input: &str) -> u32 {
         let check_lines = get_check_lines(line_idx, lines.len());
 
         // check one char before and after, except it very beginning or end
-        let range = idx.max(1)..=idx.min(line.len() - 2) + 2;
+        let range = match gear_idx {
+            0 => 0..=1,
+            num if num == lines.len() - 1 => num - 1..=num,
+            num => num - 1..=num + 1,
+        };
 
         // dbg!(&check_lines, &range);
 
         let mut adjacent_pnums = Vec::new();
         for pnum in &pnums {
-            if check_lines.contains(&pnum.span.0) {
+            // do we consider the line?
+            if check_lines.contains(&pnum.line_idx) {
                 // dbg!(&pnum);
-                if range.contains(&pnum.span.1.start) || range.contains(&pnum.span.1.end) {
+
+                // does the number touch the gear?
+                if range.contains(&pnum.span.start) || range.contains(&pnum.span.end) {
                     adjacent_pnums.push(pnum.num)
                 }
             }
@@ -106,7 +115,8 @@ fn find_part_numbers(lines: &[&str]) -> Vec<PartNumber> {
                     if f != '.' && !f.is_ascii_digit() {
                         pnums.push(PartNumber {
                             num,
-                            span: (line_idx, number_start..number_end),
+                            line_idx,
+                            span: number_start..number_end,
                         });
                         continue 'inner;
                     }
@@ -130,5 +140,6 @@ fn get_check_lines(line_idx: usize, lines_len: usize) -> Vec<usize> {
 #[derive(Debug)]
 struct PartNumber {
     num: u32,
-    span: (usize, Range<usize>),
+    line_idx: usize,
+    span: Range<usize>,
 }
