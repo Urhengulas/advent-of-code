@@ -15,58 +15,62 @@ fn main() {
     dbg!(part_1(input));
     // dbg!(part_2(input));
 
-    // dbg!(part_1(INPUT));
+    dbg!(part_1(INPUT));
     // dbg!(part_2(INPUT));
 }
 
 fn part_1(input: &str) -> u32 {
-    let a = input
-        .lines()
-        .map(str::trim)
-        .map(parse_line)
-        // .inspect(|a| {
-        //     dbg!(a);
-        // })
-        .collect::<Vec<_>>();
-    dbg!(a);
+    let lines = input.lines().map(str::trim).collect::<Vec<_>>();
 
-    for line in a {
-        let number_start = match line.iter().enumerate().find(|(b, c)|matches!(c, A::Number(_))) {
-            Some((b, c)) => b,
-            None => continue,
-        };
-        let number_end = match line.iter().enumerate().skip(number_start).find(|(b, c)|matches!(c, A::Number(_))) {
-            Some((b, c)) => b,
-            None => todo!(),
+    let mut sum = 0;
+
+    'outer: for (line_idx, line) in lines.iter().enumerate() {
+        let mut end_of_prev = 0;
+        'inner: loop {
+            // find beginning of num
+            let number_start = match line[end_of_prev..].find(|c: char| c.is_ascii_digit()) {
+                Some(idx) => end_of_prev + idx,
+                None => continue 'outer,
+            };
+            // find end of num
+            let number_end = match line[number_start..].find(|c: char| !c.is_ascii_digit()) {
+                Some(idx) => number_start + idx,
+                None => line.len(),
+            };
+            end_of_prev = number_end;
+
+            // decide if it is part number or not
+
+            // check previous, current and next line, except its first or last line
+            let check_lines = if line_idx == 0 {
+                vec![line_idx, line_idx + 1]
+            } else if line_idx == lines.len() - 1 {
+                vec![line_idx - 1, line_idx]
+            } else {
+                vec![line_idx - 1, line_idx, line_idx + 1]
+            };
+
+            // check one char before and after, except it very beginning or end
+            let (begin, end) = (number_start.max(1) - 1, number_end.min(line.len() - 2) + 1);
+
+            // parse as number
+            let num = line[number_start..number_end].parse::<u32>().unwrap();
+
+            // go through lines and chars, add num of any char is symbol
+            for idx in check_lines {
+                let e = &lines[idx][begin..end];
+                // dbg!(e);
+                for f in e.chars() {
+                    if f != '.' && !f.is_ascii_digit() {
+                        sum += num;
+                        continue 'inner;
+                    }
+                }
+            }
         }
-        
-        
-        let next_idx = 
     }
 
-    todo!()
-}
-
-fn parse_line(s: &str) -> Vec<A> {
-    let mut result = Vec::with_capacity(s.len());
-    for c in s.chars() {
-        if c == '.' {
-            result.push(A::Empty);
-        } else if c.is_numeric() {
-            let num = c.to_string().parse::<u32>().unwrap();
-            result.push(A::Number(num));
-        } else {
-            result.push(A::Partnumber)
-        }
-    }
-    result
-}
-
-#[derive(Debug)]
-enum A {
-    Number(u32),
-    Empty,
-    Partnumber,
+    sum
 }
 
 // fn part_2(input: &str) -> u32 {
