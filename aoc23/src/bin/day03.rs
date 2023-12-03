@@ -43,13 +43,7 @@ fn part_2(input: &str) -> u32 {
         };
 
         // check previous, current and next line, except its first or last line
-        let check_lines = if line_idx == 0 {
-            vec![line_idx, line_idx + 1]
-        } else if line_idx == lines.len() - 1 {
-            vec![line_idx - 1, line_idx]
-        } else {
-            vec![line_idx - 1, line_idx, line_idx + 1]
-        };
+        let check_lines = get_check_lines(line_idx, lines.len());
 
         // check one char before and after, except it very beginning or end
         let range = idx.max(1)..=idx.min(line.len() - 2) + 2;
@@ -96,13 +90,7 @@ fn find_part_numbers(lines: &[&str]) -> Vec<PartNumber> {
             // decide if it is part number or not
 
             // check previous, current and next line, except its first or last line
-            let check_lines = if line_idx == 0 {
-                vec![line_idx, line_idx + 1]
-            } else if line_idx == lines.len() - 1 {
-                vec![line_idx - 1, line_idx]
-            } else {
-                vec![line_idx - 1, line_idx, line_idx + 1]
-            };
+            let check_lines = get_check_lines(line_idx, lines.len());
 
             // check one char before and after, except it very beginning or end
             let (begin, end) = (number_start.max(1) - 1, number_end.min(line.len() - 2) + 1);
@@ -127,6 +115,16 @@ fn find_part_numbers(lines: &[&str]) -> Vec<PartNumber> {
         }
     }
     pnums
+}
+
+fn get_check_lines(line_idx: usize, lines_len: usize) -> Vec<usize> {
+    if line_idx == 0 {
+        vec![line_idx, line_idx + 1]
+    } else if line_idx == lines_len - 1 {
+        vec![line_idx - 1, line_idx]
+    } else {
+        vec![line_idx - 1, line_idx, line_idx + 1]
+    }
 }
 
 #[derive(Debug)]
