@@ -16,7 +16,12 @@ fn main() {
 }
 
 fn part_1(input: &str) -> u32 {
-    input.lines().map(str::trim).map(parse_line).sum()
+    input
+        .lines()
+        .map(str::trim)
+        .map(parse_line2)
+        .map(|num| 2_u32.pow(num.saturating_sub(1)))
+        .sum()
 }
 
 fn part_2(input: &str) -> u32 {
@@ -44,35 +49,6 @@ fn part_2(input: &str) -> u32 {
     // dbg!(&a);
 
     a.into_iter().map(|(num, _)| num).sum()
-}
-
-fn parse_line(line: &str) -> u32 {
-    let (_, line) = line.split_once(':').unwrap();
-
-    let (winning, have) = line.split_once('|').unwrap();
-    let winning = winning
-        .split(' ')
-        .filter_map(|a| a.parse::<u32>().ok())
-        .collect::<Vec<_>>();
-    let have = have
-        .split(' ')
-        .filter_map(|a| a.parse::<u32>().ok())
-        .collect::<Vec<_>>();
-
-    let mut counter = 0;
-    for i in &winning {
-        if have.contains(i) {
-            if counter == 0 {
-                counter = 1;
-            } else {
-                counter *= 2;
-            }
-        }
-    }
-
-    // dbg!(&winning, &have);
-
-    counter
 }
 
 fn parse_line2(line: &str) -> u32 {
