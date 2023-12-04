@@ -9,10 +9,10 @@ fn main() {
     Card 6: 31 18 13 56 72 | 74 77 10 23 35 67 36 11";
 
     dbg!(part_1(input));
-    // dbg!(part_2(input));
+    dbg!(part_2(input));
 
     dbg!(part_1(INPUT));
-    // dbg!(part_2(INPUT));
+    dbg!(part_2(INPUT));
 }
 
 fn part_1(input: &str) -> u32 {
@@ -20,7 +20,30 @@ fn part_1(input: &str) -> u32 {
 }
 
 fn part_2(input: &str) -> u32 {
-    todo!()
+    let mut a = input
+        .lines()
+        .map(str::trim)
+        .map(parse_line2)
+        .map(|count| (1_u32, count))
+        .collect::<Vec<_>>();
+
+    // dbg!(&a);
+
+    for idx in 0..a.len() {
+        let (num, count) = a[idx].clone();
+
+        for i in idx..(idx + count as usize) {
+            let i = i + 1;
+            if i == a.len() {
+                break;
+            }
+            a[i].0 += num * 1;
+        }
+    }
+
+    // dbg!(&a);
+
+    a.into_iter().map(|(num, _)| num).sum()
 }
 
 fn parse_line(line: &str) -> u32 {
@@ -44,6 +67,31 @@ fn parse_line(line: &str) -> u32 {
             } else {
                 counter *= 2;
             }
+        }
+    }
+
+    // dbg!(&winning, &have);
+
+    counter
+}
+
+fn parse_line2(line: &str) -> u32 {
+    let (_, line) = line.split_once(':').unwrap();
+
+    let (winning, have) = line.split_once('|').unwrap();
+    let winning = winning
+        .split(' ')
+        .filter_map(|a| a.parse::<u32>().ok())
+        .collect::<Vec<_>>();
+    let have = have
+        .split(' ')
+        .filter_map(|a| a.parse::<u32>().ok())
+        .collect::<Vec<_>>();
+
+    let mut counter = 0;
+    for i in &winning {
+        if have.contains(i) {
+            counter += 1;
         }
     }
 
