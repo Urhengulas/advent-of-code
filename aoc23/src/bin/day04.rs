@@ -35,14 +35,14 @@ fn part_2(input: &str) -> u32 {
     // dbg!(&a);
 
     for idx in 0..a.len() {
-        let (num, count) = a[idx].clone();
+        let (num, count) = a[idx];
 
         for i in idx..(idx + count as usize) {
             let i = i + 1;
             if i == a.len() {
                 break;
             }
-            a[i].0 += num * 1;
+            a[i].0 += num;
         }
     }
 
