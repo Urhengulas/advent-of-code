@@ -38,9 +38,9 @@ fn main() {
     56 93 4";
 
     dbg!(part_1(input));
-    // dbg!(part_2(input));
+    dbg!(part_2(input));
 
-    dbg!(part_1(INPUT));
+    // dbg!(part_1(INPUT));
     // dbg!(part_2(INPUT));
 }
 
@@ -67,9 +67,32 @@ fn part_1(input: &str) -> u128 {
     seeds.into_iter().min().unwrap()
 }
 
-// fn part_2(input: &str) -> u128 {
-//     todo!()
-// }
+fn part_2(input: &str) -> u128 {
+    let vecvec = str_to_vecvec(input);
+    // dbg!(&vecvec);
+    dbg!(0);
+
+    let (mut seeds, maps) = vecvec_to_maps2(vecvec);
+    // dbg!(&seeds, &maps);
+    dbg!(1);
+
+    // dbg!(&seeds);
+    for map in maps {
+        for seed_idx in 0..seeds.len() {
+            let seed = seeds[seed_idx];
+            for (destination, source) in &map {
+                if source.contains(&seed) {
+                    seeds[seed_idx] = destination.start + (seed - source.start);
+                }
+            }
+            // dbg!(seed_idx);
+        }
+        // dbg!(&seeds);
+        dbg!(2);
+    }
+
+    seeds.into_iter().min().unwrap()
+}
 
 fn str_to_vecvec(s: &str) -> Vec<Vec<&str>> {
     let a = s.lines().map(str::trim).collect::<Vec<_>>();
@@ -116,4 +139,44 @@ fn vecvec_to_maps(vecvec: Vec<Vec<&str>>) -> (Vec<u128>, Vec<Vec<(Range<u128>, R
         }
     }
     (seeds, maps)
+}
+
+fn vecvec_to_maps2(vecvec: Vec<Vec<&str>>) -> (Vec<u128>, Vec<Vec<(Range<u128>, Range<u128>)>>) {
+    let mut seeds = Vec::new();
+    let mut maps = Vec::new();
+    for (idx, mut a) in vecvec.into_iter().enumerate() {
+        if idx == 0 {
+            let c = &a[0]["seeds: ".len()..];
+            for d in c.split(" ") {
+                let num = d.parse::<u128>().unwrap();
+                seeds.push(num);
+            }
+        } else {
+            a.remove(0);
+            let c = a
+                .into_iter()
+                .map(|line| {
+                    let d = line
+                        .split(' ')
+                        .map(|s| s.parse::<u128>().unwrap())
+                        .collect::<Vec<_>>();
+                    assert_eq!(d.len(), 3);
+
+                    (d[0]..d[0] + d[2], d[1]..d[1] + d[2])
+                })
+                .collect::<Vec<_>>();
+            maps.push(c);
+        }
+    }
+
+    let mut seeds2 = Vec::new();
+    for a in seeds.chunks(2) {
+        let [b, c] = [a[0], a[1]];
+        // dbg!(b, c);
+        for d in b..b + c {
+            seeds2.push(d);
+        }
+    }
+
+    (seeds2, maps)
 }
