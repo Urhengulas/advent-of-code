@@ -29,7 +29,7 @@ fn part_2(input: &str) -> u32 {
         .lines()
         .map(str::trim)
         .map(parse_line2)
-        .map(|count| (1_u32, count))
+        .map(|count| (1, count))
         .collect::<Vec<_>>();
 
     // dbg!(&a);
@@ -52,17 +52,15 @@ fn part_2(input: &str) -> u32 {
 }
 
 fn parse_line2(line: &str) -> u32 {
+    fn to_num_list(s: &str) -> Vec<u32> {
+        s.split(' ').filter_map(|a| a.parse().ok()).collect()
+    }
+
     let (_, line) = line.split_once(':').unwrap();
 
     let (winning, have) = line.split_once('|').unwrap();
-    let winning = winning
-        .split(' ')
-        .filter_map(|a| a.parse::<u32>().ok())
-        .collect::<Vec<_>>();
-    let have = have
-        .split(' ')
-        .filter_map(|a| a.parse::<u32>().ok())
-        .collect::<Vec<_>>();
+    let winning = to_num_list(winning);
+    let have = to_num_list(have);
 
     let mut counter = 0;
     for i in &winning {
