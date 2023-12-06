@@ -5,13 +5,13 @@ fn main() {
     Distance:  9  40  200";
 
     dbg!(part_1(input));
-    // dbg!(part_2(input));
+    dbg!(part_2(input));
 
     dbg!(part_1(INPUT));
-    // dbg!(part_2(INPUT));
+    dbg!(part_2(INPUT));
 }
 
-fn part_1(input: &str) -> u32 {
+fn part_1(input: &str) -> u64 {
     let a = input
         .lines()
         .map(str::trim)
@@ -39,14 +39,40 @@ fn part_1(input: &str) -> u32 {
     result
 }
 
-// fn part_2(input: &str) -> u32 {
-//     todo!()
-// }
+fn part_2(input: &str) -> u64 {
+    let a = input
+        .lines()
+        .map(str::trim)
+        .map(parse_line2)
+        .collect::<Vec<_>>();
+    // dbg!(&a);
 
-fn parse_line(line: &str) -> Vec<u32> {
+    let (time, record) = (a[0], a[1]);
+
+    let mut win_counter = 0;
+    for speed in 0..=time {
+        let distance = (time - speed) * speed;
+        if distance > record {
+            win_counter += 1;
+        }
+    }
+
+    win_counter
+}
+
+fn parse_line(line: &str) -> Vec<u64> {
     line.split(' ')
         .skip(1)
         .map(str::trim)
-        .filter_map(|b| b.parse::<u32>().ok())
+        .filter_map(|b| b.parse::<u64>().ok())
         .collect::<Vec<_>>()
+}
+
+fn parse_line2(line: &str) -> u64 {
+    line.split(' ')
+        .skip(1)
+        .map(str::trim)
+        .collect::<String>()
+        .parse()
+        .unwrap()
 }
