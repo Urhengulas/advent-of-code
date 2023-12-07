@@ -9,18 +9,18 @@ fn main() {
     KTJJT 220
     QQQJA 483";
 
-    dbg!(part_1(input));
-    // dbg!(part_2(input));
+    // dbg!(part_1(input));
+    dbg!(part_2(input));
 
-    dbg!(part_1(INPUT));
-    // dbg!(part_2(INPUT));
+    // dbg!(part_1(INPUT));
+    dbg!(part_2(INPUT));
 }
 
 fn part_1(input: &str) -> usize {
     let a = input
         .lines()
         .map(str::trim)
-        .map(parse_line)
+        .map(|line| parse_line(line, "11"))
         .collect::<Vec<_>>();
     // dbg!(&a);
 
@@ -41,11 +41,37 @@ fn part_1(input: &str) -> usize {
         .sum()
 }
 
-// fn part_2(input: &str) -> u64 {
-//     todo!()
-// }
+fn part_2(input: &str) -> usize {
+    let a = input
+        .lines()
+        .map(str::trim)
+        .map(|line| parse_line(line, "0"))
+        .collect::<Vec<_>>();
+    // dbg!(&a);
 
-fn parse_line(line: &str) -> ([u32; 5], usize) {
+    let b = count_cards(a);
+    let mut c = rank_cards(b);
+
+    // sort by hand
+    c.sort_by_key(|d| d.0);
+    // dbg!(&c);
+
+    // sort by hand_type
+    c.sort_by_key(|d| d.3);
+    // dbg!(&c);
+
+    // print ranked hands (for debugging)
+    for (idx, (hand, hand_type)) in c.iter().map(|a| (a.0, a.3)).enumerate() {
+        println!("{idx:#03}: {hand_type} | {hand:?}");
+    }
+
+    c.into_iter()
+        .enumerate()
+        .map(|(idx, (_, bid, _, _))| (idx + 1) * bid)
+        .sum()
+}
+
+fn parse_line(line: &str, j_str: &str) -> ([u32; 5], usize) {
     let (cards, bid) = line.split_once(' ').unwrap();
     let bid = bid.parse::<usize>().unwrap();
 
@@ -53,13 +79,13 @@ fn parse_line(line: &str) -> ([u32; 5], usize) {
         .chars()
         .map(|c| match c {
             'T' => "10".to_string(),
-            'J' => "11".to_string(),
+            'J' => j_str.to_string(),
             'Q' => "12".to_string(),
             'K' => "13".to_string(),
             'A' => "14".to_string(),
             _ => c.to_string(),
         })
-        .map(|s| s.parse::<u32>().expect(&format!("{s:?}")))
+        .map(|s| s.parse().expect(&format!("{s:?}")))
         .collect::<Vec<_>>()
         .try_into()
         .unwrap();
@@ -88,24 +114,33 @@ fn rank_cards(
 ) -> Vec<([u32; 5], usize, HashMap<u32, u32>, u32)> {
     let mut c = Vec::new();
     for (hand, bid, occurences) in b {
-        let hand_type: u32 = if occurences.values().any(|key| *key == 5) {
+        let joker_count = hand.iter().filter(|card| **card == 0).count() as u32;
+
+        let hand_type: u32 = if joker_count == 5 {
+            6
+        } else if occurences.values().any(|key| *key == (5 - joker_count)) {
             // five of a kind
             6
-        } else if occurences.values().any(|key| *key == 4) {
+        } else if occurences.values().any(|key| *key == (4 - joker_count)) {
             // five of a kind
             5
-        } else if occurences.values().any(|key| *key == 3)
+        } else if occurences.values().any(|key| *key == (3 - joker_count))
             && occurences.values().any(|key| *key == 2)
         {
             // full house
             4
-        } else if occurences.values().any(|key| *key == 3) {
+        } else if occurences.values().any(|key| *key == (3 - joker_count)) {
             // three of a kind
             3
-        } else if occurences.values().filter(|key| **key == 2).count() == 2 {
+        } else if occurences
+            .values()
+            .filter(|key| **key == (2 - joker_count))
+            .count()
+            == 2
+        {
             // two pair
             2
-        } else if occurences.values().any(|key| *key == 2) {
+        } else if occurences.values().any(|key| *key == (2 - joker_count)) {
             // pair
             1
         } else {
