@@ -60,10 +60,10 @@ fn part_2(input: &str) -> usize {
     c.sort_by_key(|d| d.3);
     // dbg!(&c);
 
-    // print ranked hands (for debugging)
-    for (idx, (hand, hand_type)) in c.iter().map(|a| (a.0, a.3)).enumerate() {
-        println!("{idx:#03}: {hand_type} | {hand:?}");
-    }
+    // // print ranked hands (for debugging)
+    // for (idx, (hand, hand_type)) in c.iter().map(|a| (a.0, a.3)).enumerate() {
+    //     println!("{idx:#03}: {hand_type} | {hand:?}");
+    // }
 
     c.into_iter()
         .enumerate()
@@ -113,34 +113,39 @@ fn rank_cards(
     b: Vec<([u32; 5], usize, HashMap<u32, u32>)>,
 ) -> Vec<([u32; 5], usize, HashMap<u32, u32>, u32)> {
     let mut c = Vec::new();
-    for (hand, bid, occurences) in b {
-        let joker_count = hand.iter().filter(|card| **card == 0).count() as u32;
+    for (hand, bid, mut occurences) in b {
+        // dbg!(&occurences);
+        let joker_count = occurences.remove(&0).unwrap_or(0);
 
-        let hand_type: u32 = if joker_count == 5 {
-            6
-        } else if occurences.values().any(|key| *key == (5 - joker_count)) {
+        if joker_count == 5 {
+            c.push((hand, bid, occurences, 6));
+            continue;
+        }
+
+        let most = *occurences.iter().max_by_key(|a| a.1).unwrap().0;
+        occurences
+            .entry(most)
+            .and_modify(|count| *count += joker_count);
+        // dbg!(&occurences);
+
+        let hand_type: u32 = if occurences.values().any(|key| *key == (5)) {
             // five of a kind
             6
-        } else if occurences.values().any(|key| *key == (4 - joker_count)) {
+        } else if occurences.values().any(|key| *key == (4)) {
             // five of a kind
             5
-        } else if occurences.values().any(|key| *key == (3 - joker_count))
+        } else if occurences.values().any(|key| *key == (3))
             && occurences.values().any(|key| *key == 2)
         {
             // full house
             4
-        } else if occurences.values().any(|key| *key == (3 - joker_count)) {
+        } else if occurences.values().any(|key| *key == (3)) {
             // three of a kind
             3
-        } else if occurences
-            .values()
-            .filter(|key| **key == (2 - joker_count))
-            .count()
-            == 2
-        {
+        } else if occurences.values().filter(|key| **key == (2)).count() == 2 {
             // two pair
             2
-        } else if occurences.values().any(|key| *key == (2 - joker_count)) {
+        } else if occurences.values().any(|key| *key == (2)) {
             // pair
             1
         } else {
