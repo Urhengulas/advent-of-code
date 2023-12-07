@@ -53,11 +53,10 @@ fn part_1(input: &str) -> u128 {
 
     // dbg!(&seeds);
     for map in maps {
-        for seed_idx in 0..seeds.len() {
-            let seed = seeds[seed_idx];
-            for (destination, source) in &map {
+        for seed in &mut seeds {
+            for [destination, source] in &map {
                 if source.contains(&seed) {
-                    seeds[seed_idx] = destination.start + (seed - source.start);
+                    *seed = destination.start + (*seed - source.start);
                 }
             }
         }
@@ -80,7 +79,7 @@ fn part_2(input: &str) -> u128 {
     for map in maps {
         for seed_idx in 0..seeds.len() {
             let seed = seeds[seed_idx];
-            for (destination, source) in &map {
+            for [destination, source] in &map {
                 if source.contains(&seed) {
                     seeds[seed_idx] = destination.start + (seed - source.start);
                 }
@@ -100,7 +99,7 @@ fn str_to_vecvec(s: &str) -> Vec<Vec<&str>> {
     let mut b = vec![vec![]];
     let mut c = 0;
     for d in a {
-        if d == "" {
+        if d.is_empty() {
             c += 1;
             b.push(Vec::new());
         } else {
@@ -111,13 +110,13 @@ fn str_to_vecvec(s: &str) -> Vec<Vec<&str>> {
     b
 }
 
-fn vecvec_to_maps(vecvec: Vec<Vec<&str>>) -> (Vec<u128>, Vec<Vec<(Range<u128>, Range<u128>)>>) {
+fn vecvec_to_maps(vecvec: Vec<Vec<&str>>) -> (Vec<u128>, Vec<Vec<[Range<u128>; 2]>>) {
     let mut seeds = Vec::new();
     let mut maps = Vec::new();
     for (idx, mut a) in vecvec.into_iter().enumerate() {
         if idx == 0 {
             let c = &a[0]["seeds: ".len()..];
-            for d in c.split(" ") {
+            for d in c.split(' ') {
                 let num = d.parse::<u128>().unwrap();
                 seeds.push(num);
             }
@@ -132,7 +131,7 @@ fn vecvec_to_maps(vecvec: Vec<Vec<&str>>) -> (Vec<u128>, Vec<Vec<(Range<u128>, R
                         .collect::<Vec<_>>();
                     assert_eq!(d.len(), 3);
 
-                    (d[0]..d[0] + d[2], d[1]..d[1] + d[2])
+                    [d[0]..d[0] + d[2], d[1]..d[1] + d[2]]
                 })
                 .collect::<Vec<_>>();
             maps.push(c);
@@ -141,13 +140,13 @@ fn vecvec_to_maps(vecvec: Vec<Vec<&str>>) -> (Vec<u128>, Vec<Vec<(Range<u128>, R
     (seeds, maps)
 }
 
-fn vecvec_to_maps2(vecvec: Vec<Vec<&str>>) -> (Vec<u128>, Vec<Vec<(Range<u128>, Range<u128>)>>) {
+fn vecvec_to_maps2(vecvec: Vec<Vec<&str>>) -> (Vec<u128>, Vec<Vec<[Range<u128>; 2]>>) {
     let mut seeds = Vec::new();
     let mut maps = Vec::new();
     for (idx, mut a) in vecvec.into_iter().enumerate() {
         if idx == 0 {
             let c = &a[0]["seeds: ".len()..];
-            for d in c.split(" ") {
+            for d in c.split(' ') {
                 let num = d.parse::<u128>().unwrap();
                 seeds.push(num);
             }
@@ -162,7 +161,7 @@ fn vecvec_to_maps2(vecvec: Vec<Vec<&str>>) -> (Vec<u128>, Vec<Vec<(Range<u128>, 
                         .collect::<Vec<_>>();
                     assert_eq!(d.len(), 3);
 
-                    (d[0]..d[0] + d[2], d[1]..d[1] + d[2])
+                    [d[0]..d[0] + d[2], d[1]..d[1] + d[2]]
                 })
                 .collect::<Vec<_>>();
             maps.push(c);
