@@ -24,50 +24,8 @@ fn part_1(input: &str) -> usize {
         .collect::<Vec<_>>();
     // dbg!(&a);
 
-    let mut b = Vec::new();
-    for (hand, bid) in a {
-        let mut occurences = HashMap::new();
-        for card in hand {
-            if occurences.get(&card).is_none() {
-                let count = hand.iter().filter(|c| **c == card).count() as u32;
-                occurences.insert(card, count);
-            }
-        }
-        b.push((hand, bid, occurences))
-    }
-    // dbg!(&b);
-
-    let mut c = Vec::new();
-    for (hand, bid, occurences) in b {
-        let hand_type: u32 = if occurences.values().any(|key| *key == 5) {
-            // five of a kind
-            6
-        } else if occurences.values().any(|key| *key == 4) {
-            // five of a kind
-            5
-        } else if occurences.values().any(|key| *key == 3)
-            && occurences.values().any(|key| *key == 2)
-        {
-            // full house
-            4
-        } else if occurences.values().any(|key| *key == 3) {
-            // three of a kind
-            3
-        } else if occurences.values().filter(|key| **key == 2).count() == 2 {
-            // two pair
-            2
-        } else if occurences.values().any(|key| *key == 2) {
-            // pair
-            1
-        } else {
-            // high card
-            0
-        };
-        // dbg!(hand_type);
-
-        c.push((hand, bid, occurences, hand_type));
-    }
-    // dbg!(&c);
+    let b = count_cards(a);
+    let mut c = rank_cards(b);
 
     // sort by hand
     c.sort_by_key(|d| d.0);
@@ -107,4 +65,57 @@ fn parse_line(line: &str) -> ([u32; 5], usize) {
         .unwrap();
 
     (cards, bid)
+}
+
+fn count_cards(a: Vec<([u32; 5], usize)>) -> Vec<([u32; 5], usize, HashMap<u32, u32>)> {
+    let mut b = Vec::new();
+    for (hand, bid) in a {
+        let mut occurences = HashMap::new();
+        for card in hand {
+            if occurences.get(&card).is_none() {
+                let count = hand.iter().filter(|c| **c == card).count() as u32;
+                occurences.insert(card, count);
+            }
+        }
+        b.push((hand, bid, occurences))
+    }
+    // dbg!(&b);
+    b
+}
+
+fn rank_cards(
+    b: Vec<([u32; 5], usize, HashMap<u32, u32>)>,
+) -> Vec<([u32; 5], usize, HashMap<u32, u32>, u32)> {
+    let mut c = Vec::new();
+    for (hand, bid, occurences) in b {
+        let hand_type: u32 = if occurences.values().any(|key| *key == 5) {
+            // five of a kind
+            6
+        } else if occurences.values().any(|key| *key == 4) {
+            // five of a kind
+            5
+        } else if occurences.values().any(|key| *key == 3)
+            && occurences.values().any(|key| *key == 2)
+        {
+            // full house
+            4
+        } else if occurences.values().any(|key| *key == 3) {
+            // three of a kind
+            3
+        } else if occurences.values().filter(|key| **key == 2).count() == 2 {
+            // two pair
+            2
+        } else if occurences.values().any(|key| *key == 2) {
+            // pair
+            1
+        } else {
+            // high card
+            0
+        };
+        // dbg!(hand_type);
+
+        c.push((hand, bid, occurences, hand_type));
+    }
+    // dbg!(&c);
+    c
 }
