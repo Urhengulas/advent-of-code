@@ -77,65 +77,55 @@ fn parse_line(line: &str, j_str: &str) -> ([u32; 5], usize) {
 }
 
 fn count_cards(a: Vec<([u32; 5], usize)>) -> Vec<([u32; 5], usize, HashMap<u32, u32>)> {
-    a.into_iter()
-        .map(|(hand, bid)| {
-            let mut occurences = HashMap::new();
-            for card in hand {
-                if occurences.get(&card).is_none() {
-                    let count = hand.iter().filter(|c| **c == card).count() as u32;
-                    occurences.insert(card, count);
-                }
+    map(a, |(hand, bid)| {
+        let mut occurences = HashMap::new();
+        for card in hand {
+            if occurences.get(&card).is_none() {
+                let count = hand.iter().filter(|c| **c == card).count() as u32;
+                occurences.insert(card, count);
             }
-            (hand, bid, occurences)
-        })
-        .collect()
+        }
+        (hand, bid, occurences)
+    })
 }
 
 fn rank_cards(
     b: Vec<([u32; 5], usize, HashMap<u32, u32>)>,
 ) -> Vec<([u32; 5], usize, HashMap<u32, u32>, u32)> {
-    b.into_iter()
-        .map(|(hand, bid, mut occurences)| {
-            // dbg!(&occurences);
-            let joker_count = occurences.remove(&0).unwrap_or(0);
+    map(b, |(hand, bid, mut occurences)| {
+        // dbg!(&occurences);
+        let joker_count = occurences.remove(&0).unwrap_or(0);
 
-            if joker_count == 5 {
-                return (hand, bid, occurences, 6);
-            }
+        if joker_count == 5 {
+            return (hand, bid, occurences, 6);
+        }
 
-            let most = *occurences.iter().max_by_key(|a| a.1).unwrap().0;
-            occurences
-                .entry(most)
-                .and_modify(|count| *count += joker_count);
-            // dbg!(&occurences);
+        let most = *occurences.iter().max_by_key(|a| a.1).unwrap().0;
+        occurences
+            .entry(most)
+            .and_modify(|count| *count += joker_count);
+        // dbg!(&occurences);
 
-            let hand_type: u32 = if occurences.values().any(|key| *key == (5)) {
-                // five of a kind
-                6
-            } else if occurences.values().any(|key| *key == (4)) {
-                // five of a kind
-                5
-            } else if occurences.values().any(|key| *key == (3))
-                && occurences.values().any(|key| *key == 2)
-            {
-                // full house
-                4
-            } else if occurences.values().any(|key| *key == (3)) {
-                // three of a kind
-                3
-            } else if occurences.values().filter(|key| **key == (2)).count() == 2 {
-                // two pair
-                2
-            } else if occurences.values().any(|key| *key == (2)) {
-                // pair
-                1
-            } else {
-                // high card
-                0
-            };
-            // dbg!(hand_type);
+        let max = *occurences.values().max().unwrap();
 
-            (hand, bid, occurences, hand_type)
-        })
-        .collect()
+        let hand_type: u32 = match max {
+            5 => 6,                                                              // five of a kind
+            4 => 5,                                                              // four of a kind
+            3 if occurences.values().any(|key| *key == 2) => 4,                  // full house
+            3 => 3,                                                              // three of a kind
+            2 if occurences.values().filter(|key| **key == 2).count() == 2 => 2, // two pair
+            2 => 1,                                                              // pair
+            _ => 0,                                                              // high card
+        };
+        // dbg!(hand_type);
+
+        (hand, bid, occurences, hand_type)
+    })
+}
+
+fn map<T, U, V>(data: Vec<T>, f: U) -> Vec<V>
+where
+    U: Fn(T) -> V,
+{
+    data.into_iter().map(f).collect()
 }
