@@ -78,6 +78,8 @@ fn part_2(input: &str) -> usize {
         .collect::<Vec<_>>();
     // dbg!(&counts);
 
+    // The LCM only works, because the input is designed for it.
+    // See https://www.reddit.com/r/adventofcode/comments/18dfpub/2023_day_8_part_2_why_is_spoiler_correct/
     let step_count = counts
         .into_iter()
         .reduce(|acc, e| num::integer::lcm(acc, e))
