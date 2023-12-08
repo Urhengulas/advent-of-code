@@ -39,52 +39,33 @@ fn main() {
 }
 
 fn part_1(input: &str) -> usize {
-    let (a, b) = input.split_once("\n\n").unwrap();
+    let (steps, b) = input.split_once("\n\n").unwrap();
     // dbg!(a);
     // dbg!(b);
 
-    let c = b
+    let map = b
         .lines()
         .map(str::trim)
         .map(parse_line)
         .collect::<HashMap<_, _>>();
     // dbg!(&c);
 
-    let mut location = "AAA";
-    let mut step_count = 0;
-    for d in a.chars().cycle() {
-        if location == "ZZZ" {
-            break;
-        }
-
-        let e = match d {
-            'L' => 0,
-            'R' => 1,
-            _ => unreachable!(),
-        };
-        let f = c.get(location).unwrap();
-        let g = f[e];
-        location = g;
-
-        step_count += 1;
-    }
-
-    step_count
+    find_path(steps, &map, "AAA", "ZZZ")
 }
 
-fn part_2(input: &str) -> u64 {
-    let (a, b) = input.split_once("\n\n").unwrap();
+fn part_2(input: &str) -> usize {
+    let (steps, b) = input.split_once("\n\n").unwrap();
     // dbg!(a);
     // dbg!(b);
 
-    let c = b
+    let map = b
         .lines()
         .map(str::trim)
         .map(parse_line)
         .collect::<HashMap<_, _>>();
     // dbg!(&c);
 
-    let locations = c
+    let locations = map
         .keys()
         .filter(|key| key.ends_with('A'))
         .copied()
@@ -93,27 +74,7 @@ fn part_2(input: &str) -> u64 {
 
     let counts = locations
         .iter()
-        .map(|location| {
-            let mut location = *location;
-            let mut step_count = 0;
-            for d in a.chars().cycle() {
-                if location.ends_with('Z') {
-                    break;
-                }
-
-                let e = match d {
-                    'L' => 0,
-                    'R' => 1,
-                    _ => unreachable!(),
-                };
-                let f = c.get(location).unwrap();
-                let g = f[e];
-                location = g;
-
-                step_count += 1;
-            }
-            step_count
-        })
+        .map(|location| find_path(steps, &map, location, "Z"))
         .collect::<Vec<_>>();
     // dbg!(&counts);
 
@@ -130,4 +91,25 @@ fn parse_line(line: &str) -> (&str, [&str; 2]) {
     let l = &b[1..4];
     let r = &b[6..9];
     (a, [l, r])
+}
+
+fn find_path(steps: &str, map: &HashMap<&str, [&str; 2]>, start: &str, stop: &str) -> usize {
+    let mut location = start.to_string();
+
+    1 + steps
+        .chars()
+        .cycle()
+        .take_while(|d| {
+            let e = match d {
+                'L' => 0,
+                'R' => 1,
+                _ => unreachable!(),
+            };
+            let f = map.get(location.as_str()).unwrap();
+            let g = f[e];
+            location = g.to_string();
+
+            !location.ends_with(stop)
+        })
+        .count()
 }
