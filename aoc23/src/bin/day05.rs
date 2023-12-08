@@ -1,6 +1,6 @@
 use std::ops::Range;
 
-const INPUT: &str = include_str!("day05.txt");
+const _INPUT: &str = include_str!("day05.txt");
 
 fn main() {
     let input = "seeds: 79 14 55 13
@@ -40,8 +40,8 @@ fn main() {
     dbg!(part_1(input));
     dbg!(part_2(input));
 
-    // dbg!(part_1(INPUT));
-    // dbg!(part_2(INPUT));
+    // dbg!(part_1(_INPUT));
+    // dbg!(part_2(_INPUT));
 }
 
 fn part_1(input: &str) -> u128 {

@@ -9,10 +9,10 @@ fn main() {
     KTJJT 220
     QQQJA 483";
 
-    // dbg!(part_1(input));
+    dbg!(part_1(input));
     dbg!(part_2(input));
 
-    // dbg!(part_1(INPUT));
+    dbg!(part_1(INPUT));
     dbg!(part_2(INPUT));
 }
 
