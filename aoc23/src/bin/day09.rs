@@ -6,10 +6,10 @@ const INPUT1: &str = "0 3 6 9 12 15
 
 fn main() {
     dbg!(part_1(INPUT1));
-    // dbg!(part_2(INPUT1));
+    dbg!(part_2(INPUT1));
 
     dbg!(part_1(INPUT));
-    // dbg!(part_2(INPUT));
+    dbg!(part_2(INPUT));
 }
 
 fn part_1(input: &str) -> i64 {
@@ -24,9 +24,17 @@ fn part_1(input: &str) -> i64 {
         .sum()
 }
 
-// fn part_2(input: &str) -> usize {
-//     todo!()
-// }
+fn part_2(input: &str) -> i64 {
+    let a = parse_input(input);
+    // dbg!(&a);
+
+    a.into_iter()
+        .map(|b| {
+            let c = history(b);
+            extrapolate2(c)
+        })
+        .sum()
+}
 
 fn parse_input(input: &str) -> Vec<Vec<i64>> {
     input
@@ -63,6 +71,23 @@ fn extrapolate(mut b: Vec<Vec<i64>>) -> i64 {
         let d = *b[c].last().unwrap();
         let e = *b[c - 1].last().unwrap();
         b[c - 1].push(e + d);
+    }
+    // dbg!(&b);
+
+    *b[0].last().unwrap()
+}
+
+fn extrapolate2(b: Vec<Vec<i64>>) -> i64 {
+    let mut b = b
+        .into_iter()
+        .map(|c| c.into_iter().rev().collect::<Vec<_>>())
+        .collect::<Vec<_>>();
+    // dbg!(&b);
+
+    for c in (1..b.len()).rev() {
+        let d = *b[c].last().unwrap();
+        let e = *b[c - 1].last().unwrap();
+        b[c - 1].push(e - d);
     }
     // dbg!(&b);
 
