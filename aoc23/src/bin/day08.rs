@@ -80,12 +80,10 @@ fn part_2(input: &str) -> usize {
 
     // The LCM only works, because the input is designed for it.
     // See https://www.reddit.com/r/adventofcode/comments/18dfpub/2023_day_8_part_2_why_is_spoiler_correct/
-    let step_count = counts
+    counts
         .into_iter()
-        .reduce(|acc, e| num::integer::lcm(acc, e))
-        .unwrap();
-
-    step_count
+        .reduce(num::integer::lcm)
+        .unwrap()
 }
 
 fn parse_line(line: &str) -> (&str, [&str; 2]) {

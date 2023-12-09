@@ -2,6 +2,8 @@ use std::ops::Range;
 
 const _INPUT: &str = include_str!("day05.txt");
 
+type A = (Vec<u128>, Vec<Vec<[Range<u128>; 2]>>);
+
 fn main() {
     let input = "seeds: 79 14 55 13
 
@@ -55,7 +57,7 @@ fn part_1(input: &str) -> u128 {
     for map in maps {
         for seed in &mut seeds {
             for [destination, source] in &map {
-                if source.contains(&seed) {
+                if source.contains(seed) {
                     *seed = destination.start + (*seed - source.start);
                 }
             }
@@ -77,11 +79,10 @@ fn part_2(input: &str) -> u128 {
 
     // dbg!(&seeds);
     for map in maps {
-        for seed_idx in 0..seeds.len() {
-            let seed = seeds[seed_idx];
+        for seed in &mut seeds {
             for [destination, source] in &map {
-                if source.contains(&seed) {
-                    seeds[seed_idx] = destination.start + (seed - source.start);
+                if source.contains(seed) {
+                    *seed = destination.start + (*seed - source.start);
                 }
             }
             // dbg!(seed_idx);
@@ -110,7 +111,7 @@ fn str_to_vecvec(s: &str) -> Vec<Vec<&str>> {
     b
 }
 
-fn vecvec_to_maps(vecvec: Vec<Vec<&str>>) -> (Vec<u128>, Vec<Vec<[Range<u128>; 2]>>) {
+fn vecvec_to_maps(vecvec: Vec<Vec<&str>>) -> A {
     let mut seeds = Vec::new();
     let mut maps = Vec::new();
     for (idx, mut a) in vecvec.into_iter().enumerate() {
@@ -140,7 +141,7 @@ fn vecvec_to_maps(vecvec: Vec<Vec<&str>>) -> (Vec<u128>, Vec<Vec<[Range<u128>; 2
     (seeds, maps)
 }
 
-fn vecvec_to_maps2(vecvec: Vec<Vec<&str>>) -> (Vec<u128>, Vec<Vec<[Range<u128>; 2]>>) {
+fn vecvec_to_maps2(vecvec: Vec<Vec<&str>>) -> A {
     let mut seeds = Vec::new();
     let mut maps = Vec::new();
     for (idx, mut a) in vecvec.into_iter().enumerate() {

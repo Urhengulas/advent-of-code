@@ -2,6 +2,10 @@ use std::collections::HashMap;
 
 const INPUT: &str = include_str!("day07.txt");
 
+type A = ([u32; 5], usize);
+type B = ([u32; 5], usize, HashMap<u32, u32>);
+type C = ([u32; 5], usize, HashMap<u32, u32>, u32);
+
 fn main() {
     let input = "32T3K 765
     T55J5 684
@@ -54,7 +58,7 @@ fn part_x(input: &str, j_str: &str) -> usize {
         .sum()
 }
 
-fn parse_line(line: &str, j_str: &str) -> ([u32; 5], usize) {
+fn parse_line(line: &str, j_str: &str) -> A {
     let (cards, bid) = line.split_once(' ').unwrap();
     let bid = bid.parse().unwrap();
 
@@ -68,7 +72,7 @@ fn parse_line(line: &str, j_str: &str) -> ([u32; 5], usize) {
             'A' => "14".to_string(),
             _ => c.to_string(),
         })
-        .map(|s| s.parse().expect(&format!("{s:?}")))
+        .map(|s| s.parse().unwrap_or_else(|_| panic!("{s:?}")))
         .collect::<Vec<_>>()
         .try_into()
         .unwrap();
@@ -76,7 +80,7 @@ fn parse_line(line: &str, j_str: &str) -> ([u32; 5], usize) {
     (cards, bid)
 }
 
-fn count_cards(a: Vec<([u32; 5], usize)>) -> Vec<([u32; 5], usize, HashMap<u32, u32>)> {
+fn count_cards(a: Vec<A>) -> Vec<B> {
     map(a, |(hand, bid)| {
         let mut occurences = HashMap::new();
         for card in hand {
@@ -89,9 +93,7 @@ fn count_cards(a: Vec<([u32; 5], usize)>) -> Vec<([u32; 5], usize, HashMap<u32, 
     })
 }
 
-fn rank_cards(
-    b: Vec<([u32; 5], usize, HashMap<u32, u32>)>,
-) -> Vec<([u32; 5], usize, HashMap<u32, u32>, u32)> {
+fn rank_cards(b: Vec<B>) -> Vec<C> {
     map(b, |(hand, bid, mut occurences)| {
         // dbg!(&occurences);
         let joker_count = occurences.remove(&0).unwrap_or(0);
