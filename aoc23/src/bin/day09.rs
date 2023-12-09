@@ -16,7 +16,12 @@ fn part_1(input: &str) -> i64 {
     let a = parse_input(input);
     // dbg!(&a);
 
-    a.into_iter().map(extrapolate).sum()
+    a.into_iter()
+        .map(|b| {
+            let c = history(b);
+            extrapolate(c)
+        })
+        .sum()
 }
 
 // fn part_2(input: &str) -> usize {
@@ -35,7 +40,7 @@ fn parse_input(input: &str) -> Vec<Vec<i64>> {
         .collect::<Vec<_>>()
 }
 
-fn extrapolate(a: Vec<i64>) -> i64 {
+fn history(a: Vec<i64>) -> Vec<Vec<i64>> {
     let mut b = vec![a];
     let mut idx = 0;
     loop {
@@ -50,9 +55,11 @@ fn extrapolate(a: Vec<i64>) -> i64 {
             break;
         }
     }
-    // dbg!(&b);
+    b
+}
 
-    for c in (1..idx).rev() {
+fn extrapolate(mut b: Vec<Vec<i64>>) -> i64 {
+    for c in (1..b.len()).rev() {
         let d = *b[c].last().unwrap();
         let e = *b[c - 1].last().unwrap();
         b[c - 1].push(e + d);
