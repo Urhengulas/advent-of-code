@@ -13,11 +13,11 @@ SJLL7
 LJ.LJ";
 
 fn main() {
-    dbg!(part_1(INPUT1)); // 4
-    dbg!(part_1(INPUT2)); // 8
-                          // dbg!(part_2(INPUT1));
+    // dbg!(part_1(INPUT1)); // 4
+    // dbg!(part_1(INPUT2)); // 8
+    dbg!(part_1(INPUT));
 
-    // dbg!(part_1(INPUT));
+    // dbg!(part_2(INPUT1));
     // dbg!(part_2(INPUT));
 }
 
@@ -38,12 +38,72 @@ fn part_1(input: &str) -> usize {
     let start_pos = find_start(&map);
     positions.push(start_pos);
 
-    dbg!(pieces_around(start_pos, &map));
+    // dbg!(tiles_around(start_pos, &map));
 
-    // loop {
-    //     todo!()
-    // }
+    'outer: loop {
+        let pos = positions.last().unwrap();
+        let tile = &map[pos[0]][pos[1]];
+        // dbg!(pos, &tile);
 
+        'inner: for around in tiles_around(*pos, &map) {
+            let pos = around.pos();
+            let tile_around = &map[pos[0]][pos[1]];
+            // dbg!(tile_around);
+
+            // end the search when encountering the start tile except, except we are
+            // at the first tile after the start tile
+            if matches!(tile_around, Tile::Start) {
+                if positions.len() != 2 {
+                    break 'outer;
+                }
+            }
+
+            // skip tiles we already visited
+            if positions.contains(&pos) {
+                continue 'inner;
+            }
+
+            let is_connecting = 'block: {
+                if tile.open_north() {
+                    if matches!(around, Around::North(_)) {
+                        if tile_around.open_south() {
+                            break 'block true;
+                        }
+                    }
+                }
+                if tile.open_south() {
+                    if matches!(around, Around::South(_)) {
+                        if tile_around.open_north() {
+                            break 'block true;
+                        }
+                    }
+                }
+                if tile.open_east() {
+                    if matches!(around, Around::East(_)) {
+                        if tile_around.open_west() {
+                            break 'block true;
+                        }
+                    }
+                }
+                if tile.open_west() {
+                    if matches!(around, Around::West(_)) {
+                        if tile_around.open_east() {
+                            break 'block true;
+                        }
+                    }
+                }
+                false
+            };
+            if is_connecting {
+                positions.push(pos);
+                continue 'outer;
+            }
+        }
+
+        dbg!(&positions);
+    }
+
+    dbg!(&positions);
     positions.len() / 2
 }
 
@@ -61,14 +121,52 @@ fn parse_input(input: &str) -> Vec<Vec<Tile>> {
 
 #[derive(Debug)]
 enum Tile {
+    /// |
     Vertical,
+    /// -
     Horizontal,
+    /// L
     NorthEast,
+    /// J
     NorthWest,
+    /// 7
     SouthWest,
+    /// F
     SouthEast,
+    /// .
     Ground,
+    /// S
     Start,
+}
+
+impl Tile {
+    fn open_north(&self) -> bool {
+        match self {
+            Tile::Vertical | Tile::NorthEast | Tile::NorthWest | Tile::Start => true,
+            _ => false,
+        }
+    }
+
+    fn open_south(&self) -> bool {
+        match self {
+            Tile::Vertical | Tile::SouthEast | Tile::SouthWest | Tile::Start => true,
+            _ => false,
+        }
+    }
+
+    fn open_west(&self) -> bool {
+        match self {
+            Tile::Horizontal | Tile::NorthWest | Tile::SouthWest | Tile::Start => true,
+            _ => false,
+        }
+    }
+
+    fn open_east(&self) -> bool {
+        match self {
+            Tile::Horizontal | Tile::NorthEast | Tile::SouthEast | Tile::Start => true,
+            _ => false,
+        }
+    }
 }
 
 impl From<char> for Tile {
@@ -98,36 +196,45 @@ fn find_start(map: &Vec<Vec<Tile>>) -> [usize; 2] {
                 .map(|(col_idx, _tile)| [row_idx, col_idx])
         })
         .unwrap();
-    dbg!(start_pos);
+    // dbg!(start_pos);
     start_pos
 }
 
-fn pieces_around(pos: [usize; 2], map: &Vec<Vec<Tile>>) -> Vec<[usize; 2]> {
-    let [row_idx, col_idx] = pos;
-    let row_max = map.len();
-    let col_max = map[0].len();
+#[derive(Debug)]
+enum Around {
+    North([usize; 2]),
+    West([usize; 2]),
+    East([usize; 2]),
+    South([usize; 2]),
+}
 
-    let row_range = if row_idx == 0 {
-        vec![0, 1]
-    } else if row_idx == (row_max - 1) {
-        vec![row_max - 1, row_max]
-    } else {
-        vec![row_idx - 1, row_idx, row_idx + 1]
-    };
-
-    let col_range = if col_idx == 0 {
-        vec![0, 1]
-    } else if col_idx == (col_max - 1) {
-        vec![col_max - 1, col_max]
-    } else {
-        vec![col_idx - 1, col_idx, col_idx + 1]
-    };
-
-    let mut positions = Vec::with_capacity(9);
-    for i in row_range {
-        for j in &col_range {
-            positions.push([i, *j]);
+impl Around {
+    fn pos(&self) -> [usize; 2] {
+        match self {
+            Around::North(a) | Around::West(a) | Around::East(a) | Around::South(a) => *a,
         }
     }
+}
+
+fn tiles_around(pos: [usize; 2], map: &Vec<Vec<Tile>>) -> Vec<Around> {
+    let [row_idx, col_idx] = pos;
+    let row_max = map.len() - 1;
+    let col_max = map[0].len() - 1;
+
+    let mut positions = Vec::with_capacity(4);
+
+    if row_idx != 0 {
+        positions.push(Around::North([row_idx - 1, col_idx]));
+    }
+    if col_idx != 0 {
+        positions.push(Around::West([row_idx, col_idx - 1]));
+    }
+    if col_idx != col_max {
+        positions.push(Around::East([row_idx, col_idx + 1]));
+    }
+    if row_idx != row_max {
+        positions.push(Around::South([row_idx + 1, col_idx]));
+    }
+
     positions
 }
