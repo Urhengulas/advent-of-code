@@ -38,6 +38,8 @@ fn part_1(input: &str) -> usize {
     let start_pos = find_start(&map);
     positions.push(start_pos);
 
+    dbg!(pieces_around(start_pos, &map));
+
     // loop {
     //     todo!()
     // }
@@ -98,4 +100,34 @@ fn find_start(map: &Vec<Vec<Tile>>) -> [usize; 2] {
         .unwrap();
     dbg!(start_pos);
     start_pos
+}
+
+fn pieces_around(pos: [usize; 2], map: &Vec<Vec<Tile>>) -> Vec<[usize; 2]> {
+    let [row_idx, col_idx] = pos;
+    let row_max = map.len();
+    let col_max = map[0].len();
+
+    let row_range = if row_idx == 0 {
+        vec![0, 1]
+    } else if row_idx == (row_max - 1) {
+        vec![row_max - 1, row_max]
+    } else {
+        vec![row_idx - 1, row_idx, row_idx + 1]
+    };
+
+    let col_range = if col_idx == 0 {
+        vec![0, 1]
+    } else if col_idx == (col_max - 1) {
+        vec![col_max - 1, col_max]
+    } else {
+        vec![col_idx - 1, col_idx, col_idx + 1]
+    };
+
+    let mut positions = Vec::with_capacity(9);
+    for i in row_range {
+        for j in &col_range {
+            positions.push([i, *j]);
+        }
+    }
+    positions
 }
