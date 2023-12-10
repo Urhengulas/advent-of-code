@@ -50,19 +50,6 @@ fn part_1(input: &str) -> usize {
             let tile_around = &map[pos[0]][pos[1]];
             // dbg!(tile_around);
 
-            // end the search when encountering the start tile except, except we are
-            // at the first tile after the start tile
-            if matches!(tile_around, Tile::Start) {
-                if positions.len() != 2 {
-                    break 'outer;
-                }
-            }
-
-            // skip tiles we already visited
-            if positions.contains(&pos) {
-                continue 'inner;
-            }
-
             let is_connecting = 'block: {
                 if tile.open_north() {
                     if matches!(around, Around::North(_)) {
@@ -94,6 +81,18 @@ fn part_1(input: &str) -> usize {
                 }
                 false
             };
+
+            // end the search when encountering the start tile except, except we are
+            // at the first tile after the start tile
+            if matches!(tile_around, Tile::Start) && is_connecting && positions.len() != 2 {
+                break 'outer;
+            }
+
+            // skip tiles we already visited
+            if positions.contains(&pos) {
+                continue 'inner;
+            }
+
             if is_connecting {
                 positions.push(pos);
                 continue 'outer;
