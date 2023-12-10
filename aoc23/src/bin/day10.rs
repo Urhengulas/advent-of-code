@@ -25,84 +25,9 @@ fn part_1(input: &str) -> usize {
     let map = parse_input(input);
     // dbg!(&map);
 
-    // 1. Search start
-    // 2. start loop
-    // 3. find one connecting piece (which was not found before)
-    // 4. change position to piece
-    // 5. count up
-    // 6. break if piece is start
-    // 7. goto loop start
-    // 8. loop end
+    let positions = search(&map);
+    // dbg!(&positions);
 
-    let mut positions = Vec::new();
-    let start_pos = find_start(&map);
-    positions.push(start_pos);
-
-    // dbg!(tiles_around(start_pos, &map));
-
-    'outer: loop {
-        let pos = positions.last().unwrap();
-        let tile = &map[pos[0]][pos[1]];
-        // dbg!(pos, &tile);
-
-        'inner: for around in tiles_around(*pos, &map) {
-            let pos = around.pos();
-            let tile_around = &map[pos[0]][pos[1]];
-            // dbg!(tile_around);
-
-            let is_connecting = 'block: {
-                if tile.open_north() {
-                    if matches!(around, Around::North(_)) {
-                        if tile_around.open_south() {
-                            break 'block true;
-                        }
-                    }
-                }
-                if tile.open_south() {
-                    if matches!(around, Around::South(_)) {
-                        if tile_around.open_north() {
-                            break 'block true;
-                        }
-                    }
-                }
-                if tile.open_east() {
-                    if matches!(around, Around::East(_)) {
-                        if tile_around.open_west() {
-                            break 'block true;
-                        }
-                    }
-                }
-                if tile.open_west() {
-                    if matches!(around, Around::West(_)) {
-                        if tile_around.open_east() {
-                            break 'block true;
-                        }
-                    }
-                }
-                false
-            };
-
-            // end the search when encountering the start tile except, except we are
-            // at the first tile after the start tile
-            if matches!(tile_around, Tile::Start) && is_connecting && positions.len() != 2 {
-                break 'outer;
-            }
-
-            // skip tiles we already visited
-            if positions.contains(&pos) {
-                continue 'inner;
-            }
-
-            if is_connecting {
-                positions.push(pos);
-                continue 'outer;
-            }
-        }
-
-        dbg!(&positions);
-    }
-
-    dbg!(&positions);
     positions.len() / 2
 }
 
@@ -235,5 +160,84 @@ fn tiles_around(pos: [usize; 2], map: &Vec<Vec<Tile>>) -> Vec<Around> {
         positions.push(Around::South([row_idx + 1, col_idx]));
     }
 
+    positions
+}
+
+// 1. Search start
+// 2. start loop
+// 3. find one connecting piece (which was not found before)
+// 4. change position to piece
+// 5. count up
+// 6. break if piece is start
+// 7. goto loop start
+// 8. loop end
+fn search(map: &Vec<Vec<Tile>>) -> Vec<[usize; 2]> {
+    let mut positions = Vec::new();
+    let start_pos = find_start(&map);
+    positions.push(start_pos);
+
+    // dbg!(tiles_around(start_pos, &map));
+
+    'outer: loop {
+        let pos = positions.last().unwrap();
+        let tile = &map[pos[0]][pos[1]];
+        // dbg!(pos, &tile);
+
+        'inner: for around in tiles_around(*pos, &map) {
+            let pos = around.pos();
+            let tile_around = &map[pos[0]][pos[1]];
+            // dbg!(tile_around);
+
+            let is_connecting = 'block: {
+                if tile.open_north() {
+                    if matches!(around, Around::North(_)) {
+                        if tile_around.open_south() {
+                            break 'block true;
+                        }
+                    }
+                }
+                if tile.open_south() {
+                    if matches!(around, Around::South(_)) {
+                        if tile_around.open_north() {
+                            break 'block true;
+                        }
+                    }
+                }
+                if tile.open_east() {
+                    if matches!(around, Around::East(_)) {
+                        if tile_around.open_west() {
+                            break 'block true;
+                        }
+                    }
+                }
+                if tile.open_west() {
+                    if matches!(around, Around::West(_)) {
+                        if tile_around.open_east() {
+                            break 'block true;
+                        }
+                    }
+                }
+                false
+            };
+
+            // end the search when encountering the start tile except, except we are
+            // at the first tile after the start tile
+            if matches!(tile_around, Tile::Start) && is_connecting && positions.len() != 2 {
+                break 'outer;
+            }
+
+            // skip tiles we already visited
+            if positions.contains(&pos) {
+                continue 'inner;
+            }
+
+            if is_connecting {
+                positions.push(pos);
+                continue 'outer;
+            }
+        }
+    }
+
+    // dbg!(&positions);
     positions
 }
