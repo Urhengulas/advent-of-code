@@ -275,7 +275,8 @@ fn search(map: &Vec<Vec<Tile>>) -> Vec<Pos> {
 enum A {
     Outside,
     Inside,
-    Line,
+    /// true means inside, false means outside
+    Line(bool),
 }
 
 fn enclosed_tiles(positions: &[Pos]) -> u32 {
@@ -286,6 +287,38 @@ fn enclosed_tiles(positions: &[Pos]) -> u32 {
     let max_col = positions.iter().map(|a| a[1]).max().unwrap();
 
     // count enclosed tiles
+    let mut counter = 0;
+    let mut state = A::Outside;
+    let mut prev_was_pos = false;
+    for i in min_row..=max_row {
+        for j in min_col..=max_col {
+            let pos = [i, j];
 
-    todo!()
+            if positions.contains(&pos) {
+                if prev_was_pos {
+                    match state {
+                        A::Outside => state = A::Line(true),
+                        A::Inside => state = A::Line(false),
+                        A::Line(_) => (),
+                    }
+                } else {
+                    match state {
+                        A::Outside => state = A::Inside,
+                        A::Inside => state = A::Outside,
+                        A::Line(_) => {}
+                    }
+                }
+                prev_was_pos = true;
+            } else {
+                match state {
+                    A::Outside => (),
+                    A::Inside => counter += 1,
+                    A::Line(true) => state = A::Inside,
+                    A::Line(false) => state = A::Outside,
+                }
+                prev_was_pos = false;
+            }
+        }
+    }
+    counter
 }
