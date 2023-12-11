@@ -13,7 +13,7 @@ const INPUT1: &str = "...#......
 
 fn main() {
     dbg!(part_1(INPUT1));
-    // dbg!(part_1(INPUT));
+    dbg!(part_1(INPUT));
 
     // dbg!(part_2(INPUT1));
     // dbg!(part_2(INPUT));
@@ -21,15 +21,22 @@ fn main() {
 
 fn part_1(input: &str) -> usize {
     let galaxy = parse_input(input);
+    println!("parse_input");
     // dbg!(&galaxy);
 
     let expanded_galaxy = expand(galaxy);
-    dbg!(&expanded_galaxy);
+    println!("expand");
+    // dbg!(&expanded_galaxy);
 
     let positions = positions(&expanded_galaxy);
-    dbg!(&positions);
+    println!("positions");
+    // dbg!(&positions);
 
-    todo!()
+    let distances = distances(&positions);
+    println!("distances");
+    // dbg!(&distances);
+
+    distances.into_iter().sum()
 }
 
 // fn part_2(input: &str) -> u32 {
@@ -42,9 +49,9 @@ enum Token {
     Galaxy(u32),
 }
 
-type Galaxy = Vec<Vec<Token>>;
+type Universe = Vec<Vec<Token>>;
 
-fn parse_input(input: &str) -> Galaxy {
+fn parse_input(input: &str) -> Universe {
     let mut galaxy_id = 0;
     input
         .lines()
@@ -64,13 +71,13 @@ fn parse_input(input: &str) -> Galaxy {
         .collect()
 }
 
-fn expand(mut galaxy: Galaxy) -> Galaxy {
+fn expand(mut universe: Universe) -> Universe {
     // rows
     let mut row_idx = 0;
-    while row_idx < galaxy.len() {
-        let row = &galaxy[row_idx];
+    while row_idx < universe.len() {
+        let row = &universe[row_idx];
         if row.iter().all(|a| matches!(a, Token::Empty)) {
-            galaxy.insert(row_idx, row.clone());
+            universe.insert(row_idx, row.clone());
             row_idx += 2;
         } else {
             row_idx += 1;
@@ -79,10 +86,10 @@ fn expand(mut galaxy: Galaxy) -> Galaxy {
 
     // columns
     let mut col_idx = 0;
-    while col_idx < galaxy[0].len() {
-        let mut col = galaxy.iter().map(|row| &row[col_idx]);
+    while col_idx < universe[0].len() {
+        let mut col = universe.iter().map(|row| &row[col_idx]);
         if col.all(|a| matches!(a, Token::Empty)) {
-            for row in &mut galaxy {
+            for row in &mut universe {
                 row.insert(col_idx, Token::Empty)
             }
             col_idx += 2;
@@ -92,14 +99,14 @@ fn expand(mut galaxy: Galaxy) -> Galaxy {
     }
 
     // ---
-    galaxy
+    universe
 }
 
 type Pos = [usize; 2];
 
-fn positions(galaxy: &Galaxy) -> Vec<Pos> {
+fn positions(universe: &Universe) -> Vec<Pos> {
     let mut positions = Vec::new();
-    for (row_idx, row) in galaxy.iter().enumerate() {
+    for (row_idx, row) in universe.iter().enumerate() {
         for (col_idx, token) in row.iter().enumerate() {
             if matches!(token, Token::Galaxy(_)) {
                 positions.push([row_idx, col_idx]);
@@ -107,4 +114,32 @@ fn positions(galaxy: &Galaxy) -> Vec<Pos> {
         }
     }
     positions
+}
+
+fn distances(positions: &Vec<Pos>) -> Vec<usize> {
+    let mut distances = Vec::new();
+    let mut seen_positions = Vec::new();
+    for (outer_idx, outer_pos) in positions.iter().enumerate() {
+        for (inner_idx, inner_pos) in positions.iter().enumerate() {
+            if outer_idx == inner_idx {
+                continue; // same galaxy
+            } else if seen_positions
+                .iter()
+                .any(|a| *a == [outer_idx, inner_idx] || *a == [inner_idx, outer_idx])
+            {
+                continue; // already processed distance
+            } else {
+                let d_row = outer_pos[0]
+                    .checked_sub(inner_pos[0])
+                    .unwrap_or_else(|| inner_pos[0].checked_sub(outer_pos[0]).unwrap());
+                let d_col = outer_pos[1]
+                    .checked_sub(inner_pos[1])
+                    .unwrap_or_else(|| inner_pos[1].checked_sub(outer_pos[1]).unwrap());
+                let dist = d_row + d_col;
+                distances.push(dist);
+                seen_positions.push([outer_idx, inner_idx]);
+            }
+        }
+    }
+    distances
 }
