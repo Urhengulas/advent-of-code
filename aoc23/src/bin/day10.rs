@@ -1,3 +1,5 @@
+use std::fmt::Debug;
+
 const INPUT: &str = include_str!("day10.txt");
 
 const INPUT1: &str = "-L|F7
@@ -34,13 +36,13 @@ L--J.L7...LJS7F-7L7.
 ....L---J.LJ.LJLJ...";
 
 fn main() {
-    // dbg!(part_1(INPUT1)); // 4
-    // dbg!(part_1(INPUT2)); // 8
-    // dbg!(part_1(INPUT));
+    dbg!(part_1(INPUT1)); // 4
+    dbg!(part_1(INPUT2)); // 8
+    dbg!(part_1(INPUT));
 
     dbg!(part_2(INPUT3)); // 4
     dbg!(part_2(INPUT4)); // 10
-                          // dbg!(part_2(INPUT));
+    dbg!(part_2(INPUT));
 }
 
 fn part_1(input: &str) -> usize {
@@ -56,14 +58,16 @@ fn part_1(input: &str) -> usize {
 fn part_2(input: &str) -> u32 {
     let map = parse_input(input);
     // dbg!(&map);
+    println!("parsed");
 
     let positions = search(&map);
     // dbg!(&positions);
+    println!("searched");
 
-    enclosed_tiles(&positions)
+    enclosed_tiles(map, &positions)
 }
 
-fn parse_input(input: &str) -> Vec<Vec<Tile>> {
+fn parse_input(input: &str) -> Map {
     input
         .lines()
         .map(str::trim)
@@ -71,7 +75,9 @@ fn parse_input(input: &str) -> Vec<Vec<Tile>> {
         .collect()
 }
 
-#[derive(Debug)]
+type Map = Vec<Vec<Tile>>;
+
+#[derive(Clone)]
 enum Tile {
     /// |
     Vertical,
@@ -137,9 +143,24 @@ impl From<char> for Tile {
     }
 }
 
+impl Debug for Tile {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Vertical => write!(f, "|"),
+            Self::Horizontal => write!(f, "-"),
+            Self::NorthEast => write!(f, "L"),
+            Self::NorthWest => write!(f, "J"),
+            Self::SouthWest => write!(f, "7"),
+            Self::SouthEast => write!(f, "F"),
+            Self::Ground => write!(f, "."),
+            Self::Start => write!(f, "S"),
+        }
+    }
+}
+
 type Pos = [usize; 2];
 
-fn find_start(map: &Vec<Vec<Tile>>) -> Pos {
+fn find_start(map: &Map) -> Pos {
     let start_pos = map
         .iter()
         .enumerate()
@@ -170,7 +191,7 @@ impl Around {
     }
 }
 
-fn tiles_around(pos: Pos, map: &Vec<Vec<Tile>>) -> Vec<Around> {
+fn tiles_around(pos: Pos, map: &Map) -> Vec<Around> {
     let [row_idx, col_idx] = pos;
     let row_max = map.len() - 1;
     let col_max = map[0].len() - 1;
@@ -201,7 +222,7 @@ fn tiles_around(pos: Pos, map: &Vec<Vec<Tile>>) -> Vec<Around> {
 // 6. break if piece is start
 // 7. goto loop start
 // 8. loop end
-fn search(map: &Vec<Vec<Tile>>) -> Vec<Pos> {
+fn search(map: &Map) -> Vec<Pos> {
     let mut positions = Vec::new();
     let start_pos = find_start(&map);
     positions.push(start_pos);
@@ -250,8 +271,8 @@ fn search(map: &Vec<Vec<Tile>>) -> Vec<Pos> {
                 false
             };
 
-            // end the search when encountering the start tile except, except we are
-            // at the first tile after the start tile
+            // end the search when encountering the start tile, except we are at the
+            // first tile after the start tile
             if matches!(tile_around, Tile::Start) && is_connecting && positions.len() != 2 {
                 break 'outer;
             }
@@ -272,53 +293,80 @@ fn search(map: &Vec<Vec<Tile>>) -> Vec<Pos> {
     positions
 }
 
-enum A {
-    Outside,
-    Inside,
-    /// true means inside, false means outside
-    Line(bool),
-}
-
-fn enclosed_tiles(positions: &[Pos]) -> u32 {
-    // get dimentions
-    let min_row = positions.iter().map(|a| a[0]).min().unwrap();
-    let min_col = positions.iter().map(|a| a[1]).min().unwrap();
-    let max_row = positions.iter().map(|a| a[0]).max().unwrap();
-    let max_col = positions.iter().map(|a| a[1]).max().unwrap();
-
-    // count enclosed tiles
+fn enclosed_tiles(mut map: Map, positions: &[Pos]) -> u32 {
     let mut counter = 0;
-    let mut state = A::Outside;
-    let mut prev_was_pos = false;
-    for i in min_row..=max_row {
-        for j in min_col..=max_col {
-            let pos = [i, j];
+    let mut inside = false;
+    let mut last_curve = None;
 
-            if positions.contains(&pos) {
-                if prev_was_pos {
-                    match state {
-                        A::Outside => state = A::Line(true),
-                        A::Inside => state = A::Line(false),
-                        A::Line(_) => (),
-                    }
-                } else {
-                    match state {
-                        A::Outside => state = A::Inside,
-                        A::Inside => state = A::Outside,
-                        A::Line(_) => {}
-                    }
-                }
-                prev_was_pos = true;
-            } else {
-                match state {
-                    A::Outside => (),
-                    A::Inside => counter += 1,
-                    A::Line(true) => state = A::Inside,
-                    A::Line(false) => state = A::Outside,
-                }
-                prev_was_pos = false;
+    // set non-loop tile to ground
+    for (row_idx, row) in map.iter_mut().enumerate() {
+        for (col_idx, tile) in row.iter_mut().enumerate() {
+            if !positions.contains(&[row_idx, col_idx]) {
+                *tile = Tile::Ground;
             }
         }
     }
+
+    for (row_idx, row) in map.iter().enumerate() {
+        for (col_idx, tile) in row.iter().enumerate() {
+            check_tile(
+                positions,
+                row_idx,
+                col_idx,
+                tile,
+                &mut inside,
+                &mut counter,
+                &mut last_curve,
+            )
+        }
+    }
+
     counter
+}
+
+fn check_tile(
+    positions: &[Pos],
+    row_idx: usize,
+    col_idx: usize,
+    tile: &Tile,
+    inside: &mut bool,
+    counter: &mut u32,
+    last_curve: &mut Option<Tile>,
+) {
+    match tile {
+        Tile::Vertical => *inside = !*inside,
+        Tile::Start => check_tile(
+            positions,
+            row_idx,
+            col_idx,
+            &Tile::Vertical, // HACK: I know my "S" is a "|"
+            inside,
+            counter,
+            last_curve,
+        ),
+
+        Tile::Ground if *inside => *counter += 1,
+        Tile::Ground => { /* not inside */ }
+
+        Tile::Horizontal => (),
+        curve @ (Tile::NorthEast | Tile::NorthWest | Tile::SouthWest | Tile::SouthEast) => {
+            match (curve, &last_curve) {
+                (_, None) => *last_curve = Some(curve.clone()),
+                (Tile::NorthWest, Some(Tile::NorthEast)) => *last_curve = None,
+                (Tile::SouthWest, Some(Tile::NorthEast)) => {
+                    *inside = !*inside;
+                    *last_curve = None;
+                }
+                (Tile::SouthWest, Some(Tile::SouthEast)) => *last_curve = None,
+                (Tile::NorthWest, Some(Tile::SouthEast)) => {
+                    *inside = !*inside;
+                    *last_curve = None;
+                }
+                _ => {
+                    dbg!(row_idx, col_idx);
+                    unreachable!()
+                }
+            }
+        }
+    }
 }
