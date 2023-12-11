@@ -24,7 +24,10 @@ fn part_1(input: &str) -> usize {
     // dbg!(&galaxy);
 
     let expanded_galaxy = expand(galaxy);
-    // dbg!(&expanded_galaxy);
+    dbg!(&expanded_galaxy);
+
+    let positions = positions(&expanded_galaxy);
+    dbg!(&positions);
 
     todo!()
 }
@@ -39,7 +42,9 @@ enum Token {
     Galaxy(u32),
 }
 
-fn parse_input(input: &str) -> Vec<Vec<Token>> {
+type Galaxy = Vec<Vec<Token>>;
+
+fn parse_input(input: &str) -> Galaxy {
     let mut galaxy_id = 0;
     input
         .lines()
@@ -59,7 +64,7 @@ fn parse_input(input: &str) -> Vec<Vec<Token>> {
         .collect()
 }
 
-fn expand(mut galaxy: Vec<Vec<Token>>) -> Vec<Vec<Token>> {
+fn expand(mut galaxy: Galaxy) -> Galaxy {
     // rows
     let mut row_idx = 0;
     while row_idx < galaxy.len() {
@@ -88,4 +93,18 @@ fn expand(mut galaxy: Vec<Vec<Token>>) -> Vec<Vec<Token>> {
 
     // ---
     galaxy
+}
+
+type Pos = [usize; 2];
+
+fn positions(galaxy: &Galaxy) -> Vec<Pos> {
+    let mut positions = Vec::new();
+    for (row_idx, row) in galaxy.iter().enumerate() {
+        for (col_idx, token) in row.iter().enumerate() {
+            if matches!(token, Token::Galaxy(_)) {
+                positions.push([row_idx, col_idx]);
+            }
+        }
+    }
+    positions
 }
