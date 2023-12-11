@@ -20,8 +20,11 @@ fn main() {
 }
 
 fn part_1(input: &str) -> usize {
-    let a = parse_input(input);
-    dbg!(&a);
+    let galaxy = parse_input(input);
+    // dbg!(&galaxy);
+
+    let expanded_galaxy = expand(galaxy);
+    // dbg!(&expanded_galaxy);
 
     todo!()
 }
@@ -30,7 +33,7 @@ fn part_1(input: &str) -> usize {
 //     todo!()
 // }
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 enum Token {
     Empty,
     Galaxy(u32),
@@ -54,4 +57,35 @@ fn parse_input(input: &str) -> Vec<Vec<Token>> {
                 .collect()
         })
         .collect()
+}
+
+fn expand(mut galaxy: Vec<Vec<Token>>) -> Vec<Vec<Token>> {
+    // rows
+    let mut row_idx = 0;
+    while row_idx < galaxy.len() {
+        let row = &galaxy[row_idx];
+        if row.iter().all(|a| matches!(a, Token::Empty)) {
+            galaxy.insert(row_idx, row.clone());
+            row_idx += 2;
+        } else {
+            row_idx += 1;
+        }
+    }
+
+    // columns
+    let mut col_idx = 0;
+    while col_idx < galaxy[0].len() {
+        let mut col = galaxy.iter().map(|row| &row[col_idx]);
+        if col.all(|a| matches!(a, Token::Empty)) {
+            for row in &mut galaxy {
+                row.insert(col_idx, Token::Empty)
+            }
+            col_idx += 2;
+        } else {
+            col_idx += 1;
+        }
+    }
+
+    // ---
+    galaxy
 }
