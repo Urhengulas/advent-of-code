@@ -302,71 +302,45 @@ fn enclosed_tiles(mut map: Map, positions: &[Pos]) -> u32 {
     for (row_idx, row) in map.iter_mut().enumerate() {
         for (col_idx, tile) in row.iter_mut().enumerate() {
             if !positions.contains(&[row_idx, col_idx]) {
-                *tile = Tile::Ground;
+                *tile = Tile::Ground
+            } else if matches!(tile, Tile::Start) {
+                *tile = Tile::Vertical // HACK: I know my "S" is a "|"
             }
         }
     }
 
     for (row_idx, row) in map.iter().enumerate() {
         for (col_idx, tile) in row.iter().enumerate() {
-            check_tile(
-                positions,
-                row_idx,
-                col_idx,
-                tile,
-                &mut inside,
-                &mut counter,
-                &mut last_curve,
-            )
-        }
-    }
+            match tile {
+                Tile::Vertical => inside = !inside,
+                Tile::Start => unreachable!(),
 
-    counter
-}
+                Tile::Ground if inside => counter += 1,
+                Tile::Ground => { /* not inside */ }
 
-fn check_tile(
-    positions: &[Pos],
-    row_idx: usize,
-    col_idx: usize,
-    tile: &Tile,
-    inside: &mut bool,
-    counter: &mut u32,
-    last_curve: &mut Option<Tile>,
-) {
-    match tile {
-        Tile::Vertical => *inside = !*inside,
-        Tile::Start => check_tile(
-            positions,
-            row_idx,
-            col_idx,
-            &Tile::Vertical, // HACK: I know my "S" is a "|"
-            inside,
-            counter,
-            last_curve,
-        ),
-
-        Tile::Ground if *inside => *counter += 1,
-        Tile::Ground => { /* not inside */ }
-
-        Tile::Horizontal => (),
-        curve @ (Tile::NorthEast | Tile::NorthWest | Tile::SouthWest | Tile::SouthEast) => {
-            match (curve, &last_curve) {
-                (_, None) => *last_curve = Some(curve.clone()),
-                (Tile::NorthWest, Some(Tile::NorthEast)) => *last_curve = None,
-                (Tile::SouthWest, Some(Tile::NorthEast)) => {
-                    *inside = !*inside;
-                    *last_curve = None;
-                }
-                (Tile::SouthWest, Some(Tile::SouthEast)) => *last_curve = None,
-                (Tile::NorthWest, Some(Tile::SouthEast)) => {
-                    *inside = !*inside;
-                    *last_curve = None;
-                }
-                _ => {
-                    dbg!(row_idx, col_idx);
-                    unreachable!()
+                Tile::Horizontal => (),
+                curve @ (Tile::NorthEast | Tile::NorthWest | Tile::SouthWest | Tile::SouthEast) => {
+                    match (curve, &last_curve) {
+                        (_, None) => last_curve = Some(curve.clone()),
+                        (Tile::NorthWest, Some(Tile::NorthEast)) => last_curve = None,
+                        (Tile::SouthWest, Some(Tile::NorthEast)) => {
+                            inside = !inside;
+                            last_curve = None;
+                        }
+                        (Tile::SouthWest, Some(Tile::SouthEast)) => last_curve = None,
+                        (Tile::NorthWest, Some(Tile::SouthEast)) => {
+                            inside = !inside;
+                            last_curve = None;
+                        }
+                        _ => {
+                            dbg!(row_idx, col_idx);
+                            unreachable!()
+                        }
+                    }
                 }
             }
         }
     }
+
+    counter
 }
