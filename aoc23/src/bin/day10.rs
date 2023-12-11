@@ -12,13 +12,35 @@ SJLL7
 |F--J
 LJ.LJ";
 
+const INPUT3: &str = "...........
+.S-------7.
+.|F-----7|.
+.||.....||.
+.||.....||.
+.|L-7.F-J|.
+.|..|.|..|.
+.L--J.L--J.
+...........";
+
+const INPUT4: &str = ".F----7F7F7F7F-7....
+.|F--7||||||||FJ....
+.||.FJ||||||||L7....
+FJL7L7LJLJ||LJ.L-7..
+L--J.L7...LJS7F-7L7.
+....F-J..F7FJ|L7L7L7
+....L7.F7||L7|.L7L7|
+.....|FJLJ|FJ|F7|.LJ
+....FJL-7.||.||||...
+....L---J.LJ.LJLJ...";
+
 fn main() {
     // dbg!(part_1(INPUT1)); // 4
     // dbg!(part_1(INPUT2)); // 8
-    dbg!(part_1(INPUT));
+    // dbg!(part_1(INPUT));
 
-    // dbg!(part_2(INPUT1));
-    // dbg!(part_2(INPUT));
+    dbg!(part_2(INPUT3)); // 4
+    dbg!(part_2(INPUT4)); // 10
+                          // dbg!(part_2(INPUT));
 }
 
 fn part_1(input: &str) -> usize {
@@ -31,8 +53,14 @@ fn part_1(input: &str) -> usize {
     positions.len() / 2
 }
 
-fn part_2(input: &str) -> i64 {
-    todo!()
+fn part_2(input: &str) -> u32 {
+    let map = parse_input(input);
+    // dbg!(&map);
+
+    let positions = search(&map);
+    // dbg!(&positions);
+
+    enclosed_tiles(&positions)
 }
 
 fn parse_input(input: &str) -> Vec<Vec<Tile>> {
@@ -109,7 +137,9 @@ impl From<char> for Tile {
     }
 }
 
-fn find_start(map: &Vec<Vec<Tile>>) -> [usize; 2] {
+type Pos = [usize; 2];
+
+fn find_start(map: &Vec<Vec<Tile>>) -> Pos {
     let start_pos = map
         .iter()
         .enumerate()
@@ -126,21 +156,21 @@ fn find_start(map: &Vec<Vec<Tile>>) -> [usize; 2] {
 
 #[derive(Debug)]
 enum Around {
-    North([usize; 2]),
-    West([usize; 2]),
-    East([usize; 2]),
-    South([usize; 2]),
+    North(Pos),
+    West(Pos),
+    East(Pos),
+    South(Pos),
 }
 
 impl Around {
-    fn pos(&self) -> [usize; 2] {
+    fn pos(&self) -> Pos {
         match self {
             Around::North(a) | Around::West(a) | Around::East(a) | Around::South(a) => *a,
         }
     }
 }
 
-fn tiles_around(pos: [usize; 2], map: &Vec<Vec<Tile>>) -> Vec<Around> {
+fn tiles_around(pos: Pos, map: &Vec<Vec<Tile>>) -> Vec<Around> {
     let [row_idx, col_idx] = pos;
     let row_max = map.len() - 1;
     let col_max = map[0].len() - 1;
@@ -171,7 +201,7 @@ fn tiles_around(pos: [usize; 2], map: &Vec<Vec<Tile>>) -> Vec<Around> {
 // 6. break if piece is start
 // 7. goto loop start
 // 8. loop end
-fn search(map: &Vec<Vec<Tile>>) -> Vec<[usize; 2]> {
+fn search(map: &Vec<Vec<Tile>>) -> Vec<Pos> {
     let mut positions = Vec::new();
     let start_pos = find_start(&map);
     positions.push(start_pos);
@@ -240,4 +270,22 @@ fn search(map: &Vec<Vec<Tile>>) -> Vec<[usize; 2]> {
 
     // dbg!(&positions);
     positions
+}
+
+enum A {
+    Outside,
+    Inside,
+    Line,
+}
+
+fn enclosed_tiles(positions: &[Pos]) -> u32 {
+    // get dimentions
+    let min_row = positions.iter().map(|a| a[0]).min().unwrap();
+    let min_col = positions.iter().map(|a| a[1]).min().unwrap();
+    let max_row = positions.iter().map(|a| a[0]).max().unwrap();
+    let max_col = positions.iter().map(|a| a[1]).max().unwrap();
+
+    // count enclosed tiles
+
+    todo!()
 }
