@@ -10,10 +10,10 @@ const INPUT1: &str = "???.### 1,1,3
 ?###???????? 3,2,1";
 
 fn main() {
-    assert_eq!(dbg!(part_1(INPUT1)), 21);
-    dbg!(part_1(INPUT));
+    // assert_eq!(dbg!(part_1(INPUT1)), 21);
+    // dbg!(part_1(INPUT));
 
-    // assert_eq!(dbg!(part_2(INPUT1)), 525152);
+    assert_eq!(dbg!(part_2(INPUT1)), 525152);
     // dbg!(part_2(INPUT));
 }
 
@@ -61,10 +61,19 @@ fn part_2(input: &str) -> usize {
             println!("{}/{len}", idx + 1);
 
             let combinations = generate_combinations(tokens);
+            let total_combinations = combinations.total_combinations();
 
             let count = combinations
-                .into_iter()
-                .filter(|comb| matches_condition(comb, &condition))
+                // .into_iter()
+                .enumerate()
+                .inspect(|(idx, _comb)| {
+                    let a = total_combinations / 100;
+                    if idx % a == 0 {
+                        let progress = idx / a;
+                        println!("{progress}/100")
+                    }
+                })
+                .filter(|(_idx, comb)| matches_condition(comb, &condition))
                 .count();
 
             count
@@ -126,6 +135,10 @@ impl TokenCombinations {
             total_combinations,
         }
     }
+
+    fn total_combinations(&self) -> usize {
+        self.total_combinations
+    }
 }
 
 impl Iterator for TokenCombinations {
@@ -155,7 +168,7 @@ impl Iterator for TokenCombinations {
     }
 }
 
-fn generate_combinations(tokens: Vec<Token>) -> impl Iterator<Item = Vec<Token>> {
+fn generate_combinations(tokens: Vec<Token>) -> TokenCombinations {
     TokenCombinations::new(tokens)
 }
 
