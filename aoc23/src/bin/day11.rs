@@ -12,11 +12,11 @@ const INPUT1: &str = "...#......
 #...#.....";
 
 fn main() {
-    dbg!(part_1(INPUT1));
-    dbg!(part_1(INPUT));
+    // dbg!(part_1(INPUT1));
+    // dbg!(part_1(INPUT));
 
     // dbg!(part_2(INPUT1));
-    // dbg!(part_2(INPUT));
+    dbg!(part_2(INPUT));
 }
 
 fn part_1(input: &str) -> usize {
@@ -39,9 +39,21 @@ fn part_1(input: &str) -> usize {
     distances.into_iter().sum()
 }
 
-// fn part_2(input: &str) -> u32 {
-//     todo!()
-// }
+fn part_2(input: &str) -> usize {
+    let galaxy = parse_input(input);
+    // dbg!(&galaxy);
+
+    let empty = detect_empty(&galaxy);
+    // dbg!(&empty);
+
+    let positions = positions(&galaxy);
+    // dbg!(&positions);
+
+    let distances = distances2(&positions, &empty);
+    // dbg!(&distances);
+
+    distances.into_iter().sum()
+}
 
 #[derive(Clone, Debug)]
 enum Token {
@@ -134,6 +146,77 @@ fn distances(positions: &Vec<Pos>) -> Vec<usize> {
                     .checked_sub(inner_pos[1])
                     .unwrap_or_else(|| inner_pos[1].checked_sub(outer_pos[1]).unwrap());
                 let dist = d_row + d_col;
+                distances.push(dist);
+                seen_positions.push([outer_idx, inner_idx]);
+            }
+        }
+    }
+    distances
+}
+
+fn detect_empty(universe: &Universe) -> [Vec<usize>; 2] {
+    let mut empty_rows = Vec::new();
+    for (row_idx, row) in universe.iter().enumerate() {
+        if row.iter().all(|token| matches!(token, Token::Empty)) {
+            empty_rows.push(row_idx)
+        }
+    }
+
+    let mut empty_cols = Vec::new();
+    for col_idx in 0..universe[0].len() {
+        let mut col = universe.iter().map(|row| &row[col_idx]);
+        if col.all(|token| matches!(token, Token::Empty)) {
+            empty_cols.push(col_idx)
+        }
+    }
+
+    [empty_rows, empty_cols]
+}
+
+fn distances2(positions: &Vec<Pos>, empty: &[Vec<usize>; 2]) -> Vec<usize> {
+    let [empty_rows, empty_cols] = empty;
+
+    let mut distances = Vec::new();
+    let mut seen_positions = Vec::new();
+    for (outer_idx, outer_pos) in positions.iter().enumerate() {
+        for (inner_idx, inner_pos) in positions.iter().enumerate() {
+            if outer_idx == inner_idx {
+                continue; // same galaxy
+            } else if seen_positions
+                .iter()
+                .any(|a| *a == [outer_idx, inner_idx] || *a == [inner_idx, outer_idx])
+            {
+                continue; // already processed distance
+            } else {
+                const EXPANSION: usize = 1_000_000;
+                let mut dist = 0;
+
+                let row_range = if outer_pos[0] < inner_pos[0] {
+                    outer_pos[0]..inner_pos[0]
+                } else {
+                    inner_pos[0]..outer_pos[0]
+                };
+                for i in row_range {
+                    if empty_rows.contains(&i) {
+                        dist += EXPANSION
+                    } else {
+                        dist += 1
+                    }
+                }
+
+                let col_range = if outer_pos[1] < inner_pos[1] {
+                    outer_pos[1]..inner_pos[1]
+                } else {
+                    inner_pos[1]..outer_pos[1]
+                };
+                for i in col_range {
+                    if empty_cols.contains(&i) {
+                        dist += EXPANSION
+                    } else {
+                        dist += 1
+                    }
+                }
+
                 distances.push(dist);
                 seen_positions.push([outer_idx, inner_idx]);
             }
