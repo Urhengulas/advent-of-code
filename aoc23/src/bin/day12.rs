@@ -8,10 +8,10 @@ const INPUT1: &str = "???.### 1,1,3
 ?###???????? 3,2,1";
 
 fn main() {
-    // assert_eq!(dbg!(part_1(INPUT1)), 21);
-    // dbg!(part_1(INPUT));
+    assert_eq!(dbg!(part_1(INPUT1)), 21);
+    dbg!(part_1(INPUT));
 
-    assert_eq!(dbg!(part_2(INPUT1)), 525152);
+    // assert_eq!(dbg!(part_2(INPUT1)), 525152);
     // dbg!(part_2(INPUT));
 }
 
@@ -101,31 +101,54 @@ fn parse_line(line: &str) -> Line {
     (c, d)
 }
 
-fn generate_combinations(tokens: Vec<Token>) -> Vec<Vec<Token>> {
-    let unknown_count = tokens.iter().filter(|token| token.is_unknown()).count();
-    let combination_count = 2_usize.pow(unknown_count as u32);
+struct TokenCombinations {
+    base_tokens: Vec<Token>,
+    current_combination: usize,
+    total_combinations: usize,
+}
 
-    let mut combinations = Vec::with_capacity(combination_count);
-    combinations.push(tokens);
+impl TokenCombinations {
+    fn new(tokens: Vec<Token>) -> Self {
+        let unknown_count = tokens.iter().filter(|token| token.is_unknown()).count();
+        let total_combinations = 2_usize.pow(unknown_count as u32);
 
-    while combinations[0].contains(&Token::Unknown) {
-        // replace every combination with two combinations with ? replaced
-        combinations = combinations
-            .into_iter()
-            .flat_map(|mut comb| {
-                let idx = comb.iter().position(|token| token.is_unknown()).unwrap();
-
-                let mut comb1 = comb.clone();
-                comb1[idx] = Token::Operational;
-
-                comb[idx] = Token::Damaged;
-
-                [comb, comb1]
-            })
-            .collect();
+        TokenCombinations {
+            base_tokens: tokens,
+            current_combination: 0,
+            total_combinations,
+        }
     }
+}
 
-    combinations
+impl Iterator for TokenCombinations {
+    type Item = Vec<Token>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.current_combination >= self.total_combinations {
+            return None;
+        }
+
+        let mut result = self.base_tokens.clone();
+        let mut mask = self.current_combination;
+
+        for token in result.iter_mut() {
+            if token.is_unknown() {
+                *token = if mask % 2 == 0 {
+                    Token::Operational
+                } else {
+                    Token::Damaged
+                };
+                mask /= 2;
+            }
+        }
+
+        self.current_combination += 1;
+        Some(result)
+    }
+}
+
+fn generate_combinations(tokens: Vec<Token>) -> impl Iterator<Item = Vec<Token>> {
+    TokenCombinations::new(tokens)
 }
 
 fn matches_condition(mut combination: &[Token], condition: &[usize]) -> bool {
