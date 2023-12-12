@@ -8,15 +8,15 @@ const INPUT1: &str = "???.### 1,1,3
 ?###???????? 3,2,1";
 
 fn main() {
-    assert_eq!(dbg!(part_1(INPUT1)), 21);
-    dbg!(part_1(INPUT));
+    // assert_eq!(dbg!(part_1(INPUT1)), 21);
+    // dbg!(part_1(INPUT));
 
-    // dbg!(part_2(INPUT1));
+    assert_eq!(dbg!(part_2(INPUT1)), 525152);
     // dbg!(part_2(INPUT));
 }
 
 fn part_1(input: &str) -> usize {
-    let a = parse_input(input);
+    let lines = parse_input(input);
     // dbg!(&a);
 
     // 1. generate every possible combination -> replace ? with # and .
@@ -25,7 +25,7 @@ fn part_1(input: &str) -> usize {
 
     let mut counter = 0;
 
-    for (tokens, condition) in a {
+    for (tokens, condition) in lines {
         let combinations = generate_combinations(tokens);
         // dbg!(combinations.len());
 
@@ -45,9 +45,24 @@ fn part_1(input: &str) -> usize {
     counter
 }
 
-// fn part_2(input: &str) -> usize {
-//     todo!()
-// }
+fn part_2(input: &str) -> usize {
+    let lines = parse_input(input);
+    let unfolded_lines = unfold(lines);
+
+    let mut counter = 0;
+
+    for (tokens, condition) in unfolded_lines {
+        let combinations = generate_combinations(tokens);
+
+        let count = combinations
+            .into_iter()
+            .filter(|comb| matches_condition(comb, &condition))
+            .count();
+        counter += count;
+    }
+
+    counter
+}
 
 #[derive(Clone, Debug, PartialEq)]
 enum Token {
@@ -73,11 +88,13 @@ impl From<char> for Token {
     }
 }
 
-fn parse_input(input: &str) -> Vec<(Vec<Token>, Vec<usize>)> {
+type Line = (Vec<Token>, Vec<usize>);
+
+fn parse_input(input: &str) -> Vec<Line> {
     input.lines().map(parse_line).collect()
 }
 
-fn parse_line(line: &str) -> (Vec<Token>, Vec<usize>) {
+fn parse_line(line: &str) -> Line {
     let (a, b) = line.split_once(' ').unwrap();
     let c = a.chars().map(Into::into).collect();
     let d = b.split(',').map(|e| e.parse().unwrap()).collect();
@@ -136,4 +153,12 @@ fn matches_condition(mut combination: &[Token], condition: &[usize]) -> bool {
     // dbg!(&a);
 
     a == condition
+}
+
+fn unfold(lines: Vec<Line>) -> Vec<Line> {
+    lines.into_iter().map(unfold_line).collect()
+}
+
+fn unfold_line(line: Line) -> Line {
+    todo!()
 }
