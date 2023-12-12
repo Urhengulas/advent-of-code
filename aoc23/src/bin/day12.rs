@@ -9,7 +9,7 @@ const INPUT1: &str = "???.### 1,1,3
 
 fn main() {
     assert_eq!(dbg!(part_1(INPUT1)), 21);
-    // dbg!(part_1(INPUT));
+    dbg!(part_1(INPUT));
 
     // dbg!(part_2(INPUT1));
     // dbg!(part_2(INPUT));
@@ -27,10 +27,22 @@ fn part_1(input: &str) -> usize {
 
     for (tokens, condition) in a {
         let combinations = generate_combinations(tokens);
-        dbg!(combinations.len());
+        // dbg!(combinations.len());
+
+        let count = combinations
+            .into_iter()
+            .filter(|comb| matches_condition(comb, &condition))
+            // .inspect(|comb| {
+            //     dbg!(comb);
+            // })
+            .count();
+        counter += count;
+
+        // dbg!(count);
+        // println!();
     }
 
-    todo!()
+    counter
 }
 
 // fn part_2(input: &str) -> usize {
@@ -42,6 +54,12 @@ enum Token {
     Operational,
     Damaged,
     Unknown,
+}
+
+impl Token {
+    fn is_unknown(&self) -> bool {
+        *self == Self::Unknown
+    }
 }
 
 impl From<char> for Token {
@@ -67,10 +85,7 @@ fn parse_line(line: &str) -> (Vec<Token>, Vec<usize>) {
 }
 
 fn generate_combinations(tokens: Vec<Token>) -> Vec<Vec<Token>> {
-    let unknown_count = tokens
-        .iter()
-        .filter(|token| **token == Token::Unknown)
-        .count();
+    let unknown_count = tokens.iter().filter(|token| token.is_unknown()).count();
     let combination_count = 2_usize.pow(unknown_count as u32);
 
     let mut combinations = Vec::with_capacity(combination_count);
@@ -81,10 +96,7 @@ fn generate_combinations(tokens: Vec<Token>) -> Vec<Vec<Token>> {
         combinations = combinations
             .into_iter()
             .flat_map(|mut comb| {
-                let idx = comb
-                    .iter()
-                    .position(|token| *token == Token::Unknown)
-                    .unwrap();
+                let idx = comb.iter().position(|token| token.is_unknown()).unwrap();
 
                 let mut comb1 = comb.clone();
                 comb1[idx] = Token::Operational;
@@ -97,4 +109,31 @@ fn generate_combinations(tokens: Vec<Token>) -> Vec<Vec<Token>> {
     }
 
     combinations
+}
+
+fn matches_condition(mut combination: &[Token], condition: &[usize]) -> bool {
+    let mut a = Vec::new();
+
+    loop {
+        // dbg!(combination);
+
+        let Some(damaged_start) = combination
+            .iter()
+            .position(|token| *token == Token::Damaged)
+        else {
+            break;
+        };
+        combination = &combination[damaged_start..];
+
+        let damaged_end = combination
+            .iter()
+            .position(|token| *token == Token::Operational)
+            .unwrap_or(combination.len());
+        combination = &combination[damaged_end..];
+
+        a.push(damaged_end);
+    }
+    // dbg!(&a);
+
+    a == condition
 }
