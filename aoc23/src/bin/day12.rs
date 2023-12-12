@@ -1,3 +1,5 @@
+use std::iter;
+
 const INPUT: &str = include_str!("day12.txt");
 
 const INPUT1: &str = "???.### 1,1,3
@@ -48,20 +50,26 @@ fn part_1(input: &str) -> usize {
 fn part_2(input: &str) -> usize {
     let lines = parse_input(input);
     let unfolded_lines = unfold(lines);
+    // dbg!(&unfolded_lines);
+    println!("unfolded lines");
 
-    let mut counter = 0;
+    let len = unfolded_lines.len();
+    unfolded_lines
+        .into_iter()
+        .enumerate()
+        .map(|(idx, (tokens, condition))| {
+            println!("{}/{len}", idx + 1);
 
-    for (tokens, condition) in unfolded_lines {
-        let combinations = generate_combinations(tokens);
+            let combinations = generate_combinations(tokens);
 
-        let count = combinations
-            .into_iter()
-            .filter(|comb| matches_condition(comb, &condition))
-            .count();
-        counter += count;
-    }
+            let count = combinations
+                .into_iter()
+                .filter(|comb| matches_condition(comb, &condition))
+                .count();
 
-    counter
+            count
+        })
+        .sum()
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -183,5 +191,19 @@ fn unfold(lines: Vec<Line>) -> Vec<Line> {
 }
 
 fn unfold_line(line: Line) -> Line {
-    todo!()
+    let (mut a, mut b) = line;
+    a.reserve_exact(4 * a.len() + 4);
+    b.reserve_exact(4 * a.len());
+
+    let mut a = iter::repeat(a)
+        .take(5)
+        .flat_map(|e| [e, vec![Token::Unknown]])
+        .flatten()
+        .collect::<Vec<_>>();
+    a.pop();
+
+    let b = iter::repeat(b).take(5).flatten().collect();
+
+    // dbg!(&a, &b);
+    (a, b)
 }
