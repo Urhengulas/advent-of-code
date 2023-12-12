@@ -1,5 +1,7 @@
 use std::iter;
 
+use rayon::prelude::*;
+
 const INPUT: &str = include_str!("day12.txt");
 
 const INPUT1: &str = "???.### 1,1,3
@@ -32,7 +34,8 @@ fn part_1(input: &str) -> usize {
         // dbg!(combinations.len());
 
         let count = combinations
-            .into_iter()
+            .par_bridge()
+            .into_par_iter()
             .filter(|comb| matches_condition(comb, &condition))
             // .inspect(|comb| {
             //     dbg!(comb);
@@ -62,10 +65,12 @@ fn part_2(input: &str) -> usize {
 
             let combinations = generate_combinations(tokens);
             let total_combinations = combinations.total_combinations();
+            dbg!(total_combinations);
 
             let count = combinations
-                // .into_iter()
                 .enumerate()
+                .par_bridge()
+                .into_par_iter()
                 .inspect(|(idx, _comb)| {
                     let a = total_combinations / 100;
                     if idx % a == 0 {
@@ -200,7 +205,7 @@ fn matches_condition(mut combination: &[Token], condition: &[usize]) -> bool {
 }
 
 fn unfold(lines: Vec<Line>) -> Vec<Line> {
-    lines.into_iter().map(unfold_line).collect()
+    lines.into_par_iter().map(unfold_line).collect()
 }
 
 fn unfold_line(line: Line) -> Line {
