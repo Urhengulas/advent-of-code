@@ -46,28 +46,26 @@ fn part_1(input: &str) -> usize {
 #[derive(Clone, Debug)]
 enum Token {
     Empty,
-    Galaxy(u32),
+    Galaxy,
+}
+
+impl From<char> for Token {
+    fn from(value: char) -> Self {
+        match value {
+            '.' => Self::Empty,
+            '#' => Self::Galaxy,
+            _ => unreachable!(),
+        }
+    }
 }
 
 type Universe = Vec<Vec<Token>>;
 
 fn parse_input(input: &str) -> Universe {
-    let mut galaxy_id = 0;
     input
         .lines()
         .map(str::trim)
-        .map(|line| {
-            line.chars()
-                .map(|c| match c {
-                    '.' => Token::Empty,
-                    '#' => {
-                        galaxy_id += 1;
-                        Token::Galaxy(galaxy_id)
-                    }
-                    _ => unreachable!(),
-                })
-                .collect()
-        })
+        .map(|line| line.chars().map(Into::into).collect())
         .collect()
 }
 
@@ -108,7 +106,7 @@ fn positions(universe: &Universe) -> Vec<Pos> {
     let mut positions = Vec::new();
     for (row_idx, row) in universe.iter().enumerate() {
         for (col_idx, token) in row.iter().enumerate() {
-            if matches!(token, Token::Galaxy(_)) {
+            if matches!(token, Token::Galaxy) {
                 positions.push([row_idx, col_idx]);
             }
         }
