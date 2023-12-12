@@ -72,10 +72,11 @@ fn part_2(input: &str) -> usize {
                 .par_bridge()
                 .into_par_iter()
                 .inspect(|(idx, _comb)| {
-                    let a = total_combinations / 100;
+                    let b = 1_000;
+                    let a = total_combinations / b;
                     if idx % a == 0 {
                         let progress = idx / a;
-                        println!("{progress}/100")
+                        println!("{progress}/{b}")
                     }
                 })
                 .filter(|(_idx, comb)| matches_condition(comb, &condition))
