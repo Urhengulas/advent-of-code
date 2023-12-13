@@ -23,7 +23,7 @@ fn main() {
     // dbg!(part_1(INPUT));
 
     assert_eq!(dbg!(part_2(INPUT1)), 400);
-    // dbg!(part_2(INPUT));
+    dbg!(part_2(INPUT));
 }
 
 fn part_1(input: &str) -> usize {
@@ -37,11 +37,17 @@ fn part_2(input: &str) -> usize {
     let blocks = parse_input(input);
     // dbg!(&blocks);
 
+    let original_results = blocks
+        .iter()
+        .cloned()
+        .filter_map(process_block)
+        .collect::<Vec<_>>();
+
     // for each block generate a list of blocks where exactly one token is flipped
     let repaired_blocks = blocks.into_iter().map(|block| {
         let height = block.len();
         let width = block[0].len();
-        dbg!(height, width, height * width);
+        // dbg!(height, width, height * width);
         let mut repaired_blocks = Vec::with_capacity(height * width);
         for b in 0..height {
             for c in 0..width {
@@ -55,8 +61,16 @@ fn part_2(input: &str) -> usize {
 
     repaired_blocks
         .into_iter()
-        .map(|blocks| blocks.into_iter().find_map(process_block).unwrap())
-        .inspect(|result| println!("result={result}\n"))
+        .enumerate()
+        .map(|(block_idx, blocks)| {
+            blocks
+                .into_iter()
+                .filter_map(process_block)
+                // .inspect(|result| println!("({block_idx:04}) result={result}"))
+                .find(|result| *result != original_results[block_idx])
+                .unwrap_or(original_results[block_idx])
+        })
+        // .inspect(|result| println!("result={result}"))
         .sum()
 }
 
@@ -116,17 +130,17 @@ fn process_block(block: Vec<Vec<Token>>) -> Option<usize> {
     let num_rows = block.len();
     'outer: for (idx, a) in generate_combinations(num_rows).into_iter().enumerate() {
         for [b, c] in a {
-            println!("[{b},{c}]");
+            // println!("[{b},{c}]");
 
             let d = &block[b];
             let e = &block[c];
 
             if d != e {
-                println!();
+                // println!();
                 continue 'outer;
             }
         }
-        print_block(&block);
+        // print_block(&block);
         return Some((idx + 1) * 100);
     }
 
@@ -134,17 +148,17 @@ fn process_block(block: Vec<Vec<Token>>) -> Option<usize> {
     let num_cols = block[0].len();
     'outer: for (idx, a) in generate_combinations(num_cols).into_iter().enumerate() {
         for [b, c] in a {
-            println!("[{b},{c}]");
+            // println!("[{b},{c}]");
 
             let d = block.iter().map(|line| &line[b]).collect::<Vec<_>>();
             let e = block.iter().map(|line| &line[c]).collect::<Vec<_>>();
 
             if d != e {
-                println!();
+                // println!();
                 continue 'outer;
             }
         }
-        print_block(&block);
+        // print_block(&block);
         return Some(idx + 1);
     }
 
