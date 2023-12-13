@@ -19,8 +19,8 @@ const INPUT1: &str = "#.##..##.
 #....#..#";
 
 fn main() {
-    assert_eq!(dbg!(part_1(INPUT1)), 405);
-    // dbg!(part_1(INPUT));
+    // assert_eq!(dbg!(part_1(INPUT1)), 405);
+    dbg!(part_1(INPUT));
 
     // assert_eq!(dbg!(part_2(INPUT1)), 525152);
     // dbg!(part_2(INPUT));
