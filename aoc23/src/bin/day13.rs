@@ -80,5 +80,36 @@ impl Debug for Token {
 }
 
 fn process_block(block: Vec<Vec<Token>>) -> usize {
-    todo!()
+    // horizontally
+    let num_rows = block.len();
+    'outer: for (idx, a) in generate_combinations(num_rows).into_iter().enumerate() {
+        for [b, c] in a {
+            let d = &block[b];
+            let e = &block[c];
+
+            if d != e {
+                continue 'outer;
+            }
+        }
+        return (idx + 1) * 100;
+    }
+
+    // vertically
+
+    // ---
+    unreachable!()
+}
+
+fn generate_combinations(n: usize) -> Vec<Vec<[usize; 2]>> {
+    let mut result = Vec::new();
+
+    for i in 1..n {
+        let mut inner_vec = Vec::new();
+        for j in 0..(i.min(n - i)) {
+            inner_vec.push([i - j - 1, j + i]);
+        }
+        result.push(inner_vec);
+    }
+
+    result
 }
