@@ -116,13 +116,17 @@ fn process_block(block: Vec<Vec<Token>>) -> Option<usize> {
     let num_rows = block.len();
     'outer: for (idx, a) in generate_combinations(num_rows).into_iter().enumerate() {
         for [b, c] in a {
+            println!("[{b},{c}]");
+
             let d = &block[b];
             let e = &block[c];
 
             if d != e {
+                println!();
                 continue 'outer;
             }
         }
+        print_block(&block);
         return Some((idx + 1) * 100);
     }
 
@@ -130,13 +134,17 @@ fn process_block(block: Vec<Vec<Token>>) -> Option<usize> {
     let num_cols = block[0].len();
     'outer: for (idx, a) in generate_combinations(num_cols).into_iter().enumerate() {
         for [b, c] in a {
+            println!("[{b},{c}]");
+
             let d = block.iter().map(|line| &line[b]).collect::<Vec<_>>();
             let e = block.iter().map(|line| &line[c]).collect::<Vec<_>>();
 
             if d != e {
+                println!();
                 continue 'outer;
             }
         }
+        print_block(&block);
         return Some(idx + 1);
     }
 
@@ -156,4 +164,13 @@ fn generate_combinations(n: usize) -> Vec<Vec<[usize; 2]>> {
     }
 
     result
+}
+
+fn print_block(block: &Vec<Vec<Token>>) {
+    for line in block {
+        for token in line {
+            print!("{token:?}")
+        }
+        println!()
+    }
 }
