@@ -95,6 +95,18 @@ fn process_block(block: Vec<Vec<Token>>) -> usize {
     }
 
     // vertically
+    let num_cols = block[0].len();
+    'outer: for (idx, a) in generate_combinations(num_cols).into_iter().enumerate() {
+        for [b, c] in a {
+            let d = block.iter().map(|line| &line[b]).collect::<Vec<_>>();
+            let e = block.iter().map(|line| &line[c]).collect::<Vec<_>>();
+
+            if d != e {
+                continue 'outer;
+            }
+        }
+        return idx + 1;
+    }
 
     // ---
     unreachable!()
