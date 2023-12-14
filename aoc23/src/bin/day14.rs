@@ -26,7 +26,7 @@ O..#.OO...
 
 fn main() {
     assert_eq!(dbg!(part_1(INPUT1)), 136);
-    // dbg!(part_1(INPUT));
+    dbg!(part_1(INPUT));
 
     // assert_eq!(dbg!(part_2(INPUT1)), 400);
     // dbg!(part_2(INPUT));
@@ -39,14 +39,14 @@ fn part_1(input: &str) -> usize {
     let north_map = slide_north(map);
     // dbg!(&north_map);
 
-    for row in north_map {
-        for token in row {
-            print!("{token}")
-        }
-        println!()
-    }
+    // for row in north_map {
+    //     for token in row {
+    //         print!("{token}")
+    //     }
+    //     println!()
+    // }
 
-    todo!()
+    total_load(north_map)
 }
 
 // fn part_2(input: &str) -> usize {
@@ -144,4 +144,15 @@ fn slide_north(mut map: Vec<Vec<Token>>) -> Vec<Vec<Token>> {
     }
 
     map
+}
+
+fn total_load(map: Vec<Vec<Token>>) -> usize {
+    let num_rows = map.len();
+
+    let mut counter = 0;
+    for (idx, row) in map.into_iter().enumerate() {
+        let round_count = row.iter().filter(|token| **token == Token::Round).count();
+        counter += round_count * (num_rows - idx)
+    }
+    counter
 }
