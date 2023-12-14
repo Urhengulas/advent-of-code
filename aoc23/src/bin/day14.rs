@@ -26,9 +26,9 @@ O..#.OO...
 
 fn main() {
     assert_eq!(dbg!(part_1(INPUT1)), 136);
-    dbg!(part_1(INPUT));
+    // dbg!(part_1(INPUT));
 
-    // assert_eq!(dbg!(part_2(INPUT1)), 400);
+    assert_eq!(dbg!(part_2(INPUT1)), 64);
     // dbg!(part_2(INPUT));
 }
 
@@ -49,9 +49,13 @@ fn part_1(input: &str) -> usize {
     total_load(north_map)
 }
 
-// fn part_2(input: &str) -> usize {
-//     todo!()
-// }
+fn part_2(input: &str) -> usize {
+    let total_cycles = 1_000_000_000;
+
+    let map = parse_input(input);
+    let north_map = slide_north(map);
+    total_load(north_map)
+}
 
 fn parse_input(input: &str) -> Vec<Vec<Token>> {
     input.lines().map(parse_line).collect()
@@ -99,51 +103,53 @@ fn slide_north(mut map: Vec<Vec<Token>>) -> Vec<Vec<Token>> {
     // dbg!(num_rows, num_cols);
 
     for col_idx in 0..num_cols {
-        let mut col = map
+        let col = map
             .iter_mut()
             .map(|line| &mut line[col_idx])
             .collect::<Vec<_>>();
         // dbg!(&col);
 
-        // 1. find cube and next cube
-        // 2. count round in-between cubes
-        // 3. write round below upper cube and empty until next cube
-        // 4. set cube to next cube and search next next cube
-        // 5. goto 2
-
-        let mut a = 0;
-        loop {
-            let b = match col[a..].iter().position(|token| **token == Token::Cube) {
-                Some(idx) => a + idx,
-                None => num_rows,
-            };
-            // dbg!(b);
-            // dbg!(a);
-
-            let c = &mut col[a..b];
-            // dbg!(&c);
-
-            let d = c.iter().filter(|token| ***token == Token::Round).count();
-            // dbg!(d);
-
-            for (e, f) in c.iter_mut().enumerate() {
-                **f = if e < d { Token::Round } else { Token::Empty }
-            }
-            // dbg!(&c);
-
-            if b == num_rows {
-                break;
-            } else if a == b {
-                a += 1;
-                continue;
-            } else {
-                a = b;
-            }
-        }
-        // dbg!(col);
+        slide(col, num_rows, |e, d| e < d)
     }
 
     map
+}
+
+fn slide(mut col: Vec<&mut Token>, num_rows: usize, cond: impl Fn(usize, usize) -> bool) {
+    let mut a = 0;
+    loop {
+        let b = match col[a..].iter().position(|token| **token == Token::Cube) {
+            Some(idx) => a + idx,
+            None => num_rows,
+        };
+        // dbg!(b);
+        // dbg!(a);
+
+        let c = &mut col[a..b];
+        // dbg!(&c);
+
+        let d = c.iter().filter(|token| ***token == Token::Round).count();
+        // dbg!(d);
+
+        for (e, f) in c.iter_mut().enumerate() {
+            **f = if cond(e, d) {
+                Token::Round
+            } else {
+                Token::Empty
+            }
+        }
+        // dbg!(&c);
+
+        if b == num_rows {
+            break;
+        } else if a == b {
+            a += 1;
+            continue;
+        } else {
+            a = b;
+        }
+    }
+    // dbg!(col);
 }
 
 fn total_load(map: Vec<Vec<Token>>) -> usize {
