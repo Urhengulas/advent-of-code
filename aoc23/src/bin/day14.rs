@@ -28,7 +28,7 @@ fn main() {
     assert_eq!(dbg!(part_1(INPUT1)), 136);
     // dbg!(part_1(INPUT));
 
-    assert_eq!(dbg!(part_2(INPUT1)), 64);
+    // assert_eq!(dbg!(part_2(INPUT1)), 64);
     // dbg!(part_2(INPUT));
 }
 
@@ -36,26 +36,26 @@ fn part_1(input: &str) -> usize {
     let map = parse_input(input);
     // dbg!(&map);
 
-    let north_map = slide_north(map);
+    let north_map = slide_south(map);
     // dbg!(&north_map);
 
-    // for row in north_map {
-    //     for token in row {
-    //         print!("{token}")
-    //     }
-    //     println!()
-    // }
+    for row in &north_map {
+        for token in row {
+            print!("{token}")
+        }
+        println!()
+    }
 
     total_load(north_map)
 }
 
-fn part_2(input: &str) -> usize {
-    let total_cycles = 1_000_000_000;
+// fn part_2(input: &str) -> usize {
+//     let total_cycles = 1_000_000_000;
 
-    let map = parse_input(input);
-    let north_map = slide_north(map);
-    total_load(north_map)
-}
+//     let map = parse_input(input);
+//     let north_map = slide_north(map);
+//     total_load(north_map)
+// }
 
 fn parse_input(input: &str) -> Vec<Vec<Token>> {
     input.lines().map(parse_line).collect()
@@ -115,6 +115,26 @@ fn slide_north(mut map: Vec<Vec<Token>>) -> Vec<Vec<Token>> {
     map
 }
 
+fn slide_south(mut map: Vec<Vec<Token>>) -> Vec<Vec<Token>> {
+    let num_rows = map.len();
+    let num_cols = map[0].len();
+    // dbg!(num_rows, num_cols);
+
+    for col_idx in 0..num_cols {
+        let col = map
+            .iter_mut()
+            .map(|line| &mut line[col_idx])
+            .collect::<Vec<_>>();
+        // dbg!(&col);
+
+        slide(col, num_rows, |col_idx, round_count| {
+            col_idx > (num_rows - round_count - 1)
+        })
+    }
+
+    map
+}
+
 fn slide(mut col: Vec<&mut Token>, num_rows: usize, cond: impl Fn(usize, usize) -> bool) {
     let mut a = 0;
     loop {
@@ -128,11 +148,11 @@ fn slide(mut col: Vec<&mut Token>, num_rows: usize, cond: impl Fn(usize, usize) 
         let c = &mut col[a..b];
         // dbg!(&c);
 
-        let d = c.iter().filter(|token| ***token == Token::Round).count();
+        let round_count = c.iter().filter(|token| ***token == Token::Round).count();
         // dbg!(d);
 
-        for (e, f) in c.iter_mut().enumerate() {
-            **f = if cond(e, d) {
+        for (col_idx, f) in c.iter_mut().enumerate() {
+            **f = if cond(col_idx, round_count) {
                 Token::Round
             } else {
                 Token::Empty
