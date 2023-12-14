@@ -2,7 +2,16 @@ use std::fmt::Debug;
 
 const INPUT: &str = include_str!("day14.txt");
 
-const INPUT1: &str = "";
+const INPUT1: &str = "O....#....
+O.OO#....#
+.....##...
+OO.#O....O
+.O.....O#.
+O.#..O.#.#
+..O..#O..O
+.......O..
+#....###..
+#OO..#....";
 
 fn main() {
     assert_eq!(dbg!(part_1(INPUT1)), 405);
@@ -14,7 +23,7 @@ fn main() {
 
 fn part_1(input: &str) -> usize {
     let a = parse_input(input);
-    // dbg!(&a);
+    dbg!(&a);
 
     todo!()
 }
@@ -23,10 +32,28 @@ fn part_1(input: &str) -> usize {
 //     todo!()
 // }
 
-fn parse_input(input: &str) -> Vec<Vec<usize>> {
+fn parse_input(input: &str) -> Vec<Vec<Token>> {
     input.lines().map(parse_line).collect()
 }
 
-fn parse_line(line: &str) -> Vec<usize> {
-    todo!()
+fn parse_line(line: &str) -> Vec<Token> {
+    line.chars().map(Into::into).collect()
+}
+
+#[derive(Clone, Debug)]
+enum Token {
+    Round,
+    Cube,
+    Empty,
+}
+
+impl From<char> for Token {
+    fn from(value: char) -> Self {
+        match value {
+            '.' => Self::Empty,
+            '#' => Self::Cube,
+            'O' => Self::Round,
+            _ => unreachable!(),
+        }
+    }
 }
